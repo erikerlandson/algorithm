@@ -1,0 +1,24 @@
+[/ QuickBook Document version 1.5 ]
+
+[section:edit_distance edit_distance]
+
+[/license
+
+Copyright (c) 2014 Erik Erlandson
+
+Distributed under the Boost Software License, Version 1.0.
+(See accompanying file LICENSE_1_0.txt or copy at
+http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[heading Overview]
+
+The header file 'edit_distance.hpp' provides an implementation of the edit distance between two sequences (aka Levenshtein distance, aka string distance, aka string difference).
+
+[endsect]
+
+[/ File edit_distance.qbk
+Copyright 2014 Erik Erlandson
+Distributed under the Boost Software License, Version 1.0.
+(See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt).
+]
