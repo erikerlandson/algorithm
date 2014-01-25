@@ -83,7 +83,7 @@ The `edit_distance` function accepts a variety of optional parameters, using the
 [
     [``_max_cost_exception = bool_value``]
     [If `bool_value` == `true`, then `edit_distance` will throw an exception if edit distance exceeds the value specified by `_max_cost`, instead of completing with the fast fallback.]
-    [false]
+    [`false`]
 ]
 ]
 
