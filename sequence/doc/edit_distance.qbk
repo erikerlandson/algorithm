@@ -3,7 +3,6 @@
 [section:edit_distance edit_distance]
 
 [/license
-
 Copyright (c) 2014 Erik Erlandson
 
 Distributed under the Boost Software License, Version 1.0.
@@ -17,6 +16,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 * [link the_boost_algorithm_library.Sequence.edit_distance.arguments Arguments]
 * [link the_boost_algorithm_library.Sequence.edit_distance.cost_functions Cost Functions]
 * [link the_boost_algorithm_library.Sequence.edit_distance.equality_relation Equality Relation]
+* [link the_boost_algorithm_library.Sequence.edit_distance.script Edit Script Handler]
 
 [endsect]
 
@@ -150,6 +150,50 @@ struct custom_equal {
 // apply the customized definition of element equality:
 int d = edit_distance("case", "CaSe", _equal = custom_equal());
 ``
+[endsect]
+
+[section:script Edit Script Handler]
+
+The minimum edit distance between two sequences corresponds to a particular order of edit operations, referred to as an "edit script."  The user may provide an object that defines methods for processing ("handling") the resulting script of operations.
+
+An edit script handler must define the methods: `insertion`, `deletion`, `substitution` and `equality`.  When substitution is disabled at compile-time, then the `substitution` method is not required.
+
+By default, the `edit_distance` function provides no script handling object.  All information about the ordering of edit operations is ignored, and only the final edit distance is returned.
+
+The following example demonstrates the definition of an edit script handler:
+
+``
+#include <cstdlib>
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_io.hpp>
+using boost::make_tuple;
+using std::cout;
+
+#include <boost/algorithm/sequence/edit_distance.hpp>
+
+using boost::algorithm::sequence::edit_distance;
+using namespace boost::algorithm::sequence::parameter;
+
+struct script_handler {
+    // an edit script handler that writes edit operations to stdout:
+    void insertion(char element, int cost) { cout << make_tuple('+', element, cost); }
+    void deletion(char element, int cost) { cout << make_tuple('-', element, cost); }
+
+    // optional if substitution is disabled at compile time
+    void substitution(char e1, char e2, int cost) { cout << make_tuple(':', e1, e2, cost); }
+
+    // cost is known to be zero by definition
+    void equality(char e1, char e2) { cout << make_tuple('=', e1, e2); }
+};
+
+// A script handler is passed as a non-const reference, and must be declared prior to 
+// calling edit_distance()
+script_handler handler;
+
+// the edit script of operations will be passed to the methods of handler:
+int d = edit_distance("cat in the hat", "hat on the cat", _script = handler);
+``
+
 [endsect]
 
 [endsect]
