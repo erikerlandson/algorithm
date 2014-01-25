@@ -93,7 +93,9 @@ The `edit_distance` function accepts a variety of optional parameters, using the
 [section:cost_functions Cost Functions]
 A user specified object may be provided to `edit_distance` that defines customized cost functions for the edit operations.  
 
-A cost function object must define the methods `insertion` and `deletion`.  When substitution has not been disabled at compile-time, the method `substitution` must also be defined.  The cost type used by `edit_distance` can be explicitly defined by defining `cost_type`, or it may be automatically inferred from the return type of the cost functions.
+A cost function object must define the methods `insertion`, `deletion` and `substitution`.  The cost type used by `edit_distance` can be explicitly defined by defining `cost_type`, or it may be automatically inferred from the return type of the cost functions.
+
+[tip When substitution is disabled at compile-time, then the `substitution` method is not required.]
 
 The cost function defaults to "unit cost."  The cost of insertion, deletion and substitution is always exactly 1.
 
@@ -123,7 +125,9 @@ struct custom_cost {
 int d = edit_distance("spaces here",  "  spaces   there ",  _cost = custom_cost());
 ``
 
+[tip Although edit distances are typically integer values, the cost type can also be defined as a floating point.]
 [note When a cost function is asymmetric (for example, if the cost of deletion is not equal to cost of insertion), `edit_distance` will not behave as a true distance metric, as the symmetry property is violated: `edit_distance(a, b)` != `edit_distance(b, a)`.]
+[caution Cost functions are expected to always return values >= 0.  The behavior of `edit_distance` is undefined on functions that can return negative cost values.]
 
 [endsect]
 
@@ -156,7 +160,9 @@ int d = edit_distance("case", "CaSe", _equal = custom_equal());
 
 The minimum edit distance between two sequences corresponds to a particular order of edit operations, referred to as an "edit script."  The user may provide an object that defines methods for processing ("handling") the resulting script of operations.
 
-An edit script handler must define the methods: `insertion`, `deletion`, `substitution` and `equality`.  When substitution is disabled at compile-time, then the `substitution` method is not required.
+An edit script handler must define the methods: `insertion`, `deletion`, `substitution` and `equality`.  
+
+[tip When substitution is disabled at compile-time, then the `substitution` method is not required.]
 
 By default, the `edit_distance` function provides no script handling object.  All information about the ordering of edit operations is ignored, and only the final edit distance is returned.
 
