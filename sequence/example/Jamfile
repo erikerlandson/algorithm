@@ -1,0 +1,16 @@
+#  Boost sequence library examples Jamfile
+#
+#  Copyright Erik Erlandson 2014. Use, modification and
+#  distribution is subject to the Boost Software License, Version
+#  1.0. (See accompanying file LICENSE_1_0.txt or copy at
+#  http://www.boost.org/LICENSE_1_0.txt)
+#
+#  See http://www.boost.org for updates, documentation, and revision history.
+
+
+exe edit_distance_example : edit_distance_example.cpp /boost/system//boost_system ;
+exe edit_distance_cost_example : edit_distance_cost_example.cpp /boost/system//boost_system ;
+exe edit_distance_range_example : edit_distance_range_example.cpp /boost/system//boost_system ;
+exe edit_script_example : edit_script_example.cpp /boost/system//boost_system ;
+exe edit_script_cost_example : edit_script_cost_example.cpp /boost/system//boost_system ;
+exe edit_script_range_example : edit_script_range_example.cpp /boost/system//boost_system ;
