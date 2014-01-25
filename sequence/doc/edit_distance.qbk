@@ -72,8 +72,8 @@ The `edit_distance` function accepts a variety of optional parameters, using the
 ]
 [
     [``_substitution = boolean_arg``]
-    [Enable or disable substitution.  Note that `boolean_arg` may be either of type `bool` (enable/disable at run time), `boost::false_type` or `boost::true_type` (enable/disable at compile time).  When substitution is disabled, only insertion and deletion are considered as edit operations.]
-    [`boost::false_type` -- substitution is disabled at compile time.] 
+    [Enable or disable substitution.  Note that `boolean_arg` may be either of type `bool` (enable/disable at run time), `boost::false_type()` or `boost::true_type()` (enable/disable at compile time).  When substitution is disabled, only insertion and deletion are considered as edit operations.]
+    [`boost::false_type()` -- substitution is disabled at compile time.] 
 ]
 [
     [``_max_cost = cost_value``]
@@ -90,12 +90,45 @@ The `edit_distance` function accepts a variety of optional parameters, using the
 [endsect]
 
 [section:cost_functions Cost Functions]
-A user specified edit operation cost function can be provided:
+A user specified object may be provided to `edit_distance` that defines customized cost functions for the edit operations.  
+
+A cost function object must define the methods `insertion` and `deletion`.  When substitution has not been disabled at compile-time, the method `substitution` must also be defined.  The cost type used by `edit_distance` can be explicitly defined by defining `cost_type`, or it may be automatically inferred from the return type of the cost functions.
+
+The cost function defaults to "unit cost."  The cost of insertion, deletion and substitution is always exactly 1.
+
+The following example demonstrates the use of customized cost functions:
 
 ``
-// provide a customized cost for insertion, deletion and/or substitution
-d = edit_distance(s1, s2, _cost=my_cost_type());
+#include <boost/algorithm/sequence/edit_distance.hpp>
 
+using boost::algorithm::sequence::edit_distance;
+using namespace boost::algorithm::sequence::parameter;
+
+struct custom_cost {
+    // If cost_type is not defined, it will be automatically inferred from
+    // the return type of the cost functions below:
+    typedef int cost_type;
+
+    // inserting or deleting a space is free:
+    int insertion(char a) const { return (a == ' ') ? 0 : 1; }
+    int deletion(char a) const { return (a == ' ') ? 0 : 1; }
+
+    // defining this method is not required if substitution has been 
+    // disabled at compile time.
+    int substitution(char a, char b) const { return 1; }
+};
+
+// Invoke edit_distance with the custom cost functions:
+int d = edit_distance("spaces here",  "  spaces   there ",  _cost = custom_cost());
+``
+
+[note When a cost function is asymmetric (for example, if the cost of deletion is not equal to cost of insertion), `edit_distance` will not behave as a true distance metric, as the symmetry property is violated: `edit_distance(a, b)` != `edit_distance(b, a)`.]
+
+[endsect]
+
+
+[section:equality_relation Equality Relation]
+``
 // use a customized definition of element equality:
 d = edit_distance(s1, s2, _equal=my_equal());
 ``
