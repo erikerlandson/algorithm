@@ -16,6 +16,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 * [link the_boost_algorithm_library.Sequence.edit_distance.overview Overview]
 * [link the_boost_algorithm_library.Sequence.edit_distance.arguments Arguments]
 * [link the_boost_algorithm_library.Sequence.edit_distance.cost_functions Cost Functions]
+* [link the_boost_algorithm_library.Sequence.edit_distance.equality_relation Equality Relation]
 
 [endsect]
 
@@ -128,9 +129,26 @@ int d = edit_distance("spaces here",  "  spaces   there ",  _cost = custom_cost(
 
 
 [section:equality_relation Equality Relation]
+
+A user specified equality relation may be provided to `edit_distance`, that defines when the distance algorithms consider two sequence elements to be identical.  
+
+The equality relation defaults to applying operator `==` to sequence elements.
+
+The following example demonstrates the use of a customized equality relation:
+
 ``
-// use a customized definition of element equality:
-d = edit_distance(s1, s2, _equal=my_equal());
+#include <boost/algorithm/sequence/edit_distance.hpp>
+
+using boost::algorithm::sequence::edit_distance;
+using namespace boost::algorithm::sequence::parameter;
+
+struct custom_equal {
+    // any elements of the same case are considered identical
+    bool operator()(char a, char b) const { return tolower(a) == tolower(b); }
+};
+
+// apply the customized definition of element equality:
+int d = edit_distance("case", "CaSe", _equal = custom_equal());
 ``
 [endsect]
 
