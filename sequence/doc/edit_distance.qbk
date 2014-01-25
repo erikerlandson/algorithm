@@ -13,7 +13,80 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 [heading Overview]
 
-The header file 'edit_distance.hpp' provides an implementation of the edit distance between two sequences (aka Levenshtein distance, aka string distance, aka string difference).
+The header file 'boost/algorithm/sequence/edit_distance.hpp' provides an implementation of the [@http://en.wikipedia.org/wiki/Edit_distance edit distance] between two sequences (aka Levenshtein distance, aka string distance, aka string difference):
+
+``
+#include <boost/algorithm/sequence/edit_distance.hpp>
+
+using boost::algorithm::sequence::edit_distance;
+using namespace boost::algorithm::sequence::parameter;
+
+// Returns the edit distance between two sequences:
+d = edit_distance(seq1, seq2)
+
+// Returns the edit distance, and calls special handler methods from object 'script_handler'
+// on the correspondiung "script" of edit operations:
+d = edit_distance(seq1, seq2, _script = script_handler)
+
+// Any forward range can be provided for the sequences to be compared:
+d = edit_distance(my_vector, my_list | boost::adaptors::reversed);
+``
+
+The implementation of `edit_distance` is based on a variation of the Dijkstra Single Source Shortest Path algorithm, tuned for the particular structure of an edit graph. It is efficient on long sequences with localized areas of differences (e.g. computing the diff of two similar files). Whenever conditions permit, an even faster specialized distance algorithm is automatically applied, from:
+[pre
+An O(ND) Difference Algorithm and its Variations
+Eugene W. Myers
+Dept of Computer Science, University of Arizona
+]
+
+[heading Arguments to edit_distance()]
+
+The `edit_distance` function accepts a variety of optional parameters, using the Boost.Parameter named argument library:
+[table:id Optional Arguments to edit_distance
+[[Argument][Description][Default]]
+[
+    [``_cost = cost_object``]
+    [define customized cost functions for edit operations insertion, deletion and substitution]
+    [unit cost: cost of insertion, deletion and substitution are all 1]
+]
+[
+    [``_equal = equal_object``]
+    [define a customized equality relation between sequence elements]
+    [standard equality: requires that the `==` operator is defined for sequence elements]
+]
+[
+    [``_script = script_handler``]
+    [the sequence, or "script," of edit operations is passed to methods defined on `script_handler` for collection or other processing by the calling code]
+    [edit script information is ignored: only the edit distance is returned]
+]
+[
+    [``_substitution = boolean_arg``]
+    [Enable or disable substitution.  Note that `boolean_arg` may be either of type `bool` (enable/disable at run time), `boost::false_type` or `boost::true_type` (enable/disable at compile time).  When substitution is disabled, only insertion and deletion are considered as edit operations.]
+    [`boost::false_type` -- substitution is disabled at compile time.] 
+]
+[
+    [``_max_cost = cost_value``]
+    [Provide a maxium edit distance ("cost").  If the edit cost exceeds this maximum, computation of the true mimimum edit distance will halt, and the remainder of the computation will use a fast linear-time fallback, which will not yield the true minimum distance.]
+    [No maximum: the minimum edit distance will always be computed fully]
+]
+[
+    [``_max_cost_exception = bool_value``]
+    [If `bool_value` == `true`, then `edit_distance` will throw an exception if edit distance exceeds the value specified by `_max_cost`, instead of completing with the fast fallback.]
+    [false]
+]
+]
+
+
+[heading Cost Functions]
+A user specified edit operation cost function can be provided:
+
+``
+// provide a customized cost for insertion, deletion and/or substitution
+d = edit_distance(s1, s2, _cost=my_cost_type());
+
+// use a customized definition of element equality:
+d = edit_distance(s1, s2, _equal=my_equal());
+``
 
 [endsect]
 
