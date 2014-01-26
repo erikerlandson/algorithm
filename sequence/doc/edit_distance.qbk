@@ -18,6 +18,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 * [link the_boost_algorithm_library.Sequence.edit_distance.equality_relation Equality Relation]
 * [link the_boost_algorithm_library.Sequence.edit_distance.script Edit Script Handler]
 * [link the_boost_algorithm_library.Sequence.edit_distance.substitution Substitution]
+* [link the_boost_algorithm_library.Sequence.edit_distance.max_cost Max Cost]
 
 [endsect]
 
@@ -226,6 +227,38 @@ d = edit_distance("cat", "hat", _substitution = boost::true_type());
 
 // disable substitution at compile-time (the default)
 d = edit_distance("cat", "hat", _substitution = boost::false_type());
+``
+
+[endsect]
+
+[section:max_cost Max Cost]
+
+The `edit_distance` function is implemented to be efficient when comparing two sequences that differ only in localized areas.  For example, comparing two similar text files that differ only by localized edits, or comparing two sequences of DNA that differ only at certain localized mutations.
+
+However, edit distance in general always has a worst case time and space complexity of O(NxM), where N and M are the lengths of the two sequences being compared.  For long sequences, this worst case can quickly become intractible.
+
+The `edit_distance` function provides an argument `_max_cost`, which takes a numeric maximum cost value.  If the function finds that the maximum cost exceeds this value, it will halt its normal computations and fall back to a fast linear algorithm to complete the rest of the computation.  This fallback can obviously not provide a minimum distance, however its answer will build on the 'full' computations performed up to that point.
+
+If an approximate fallback is not desired, the function may also be directed to throw an exception if the computation exceeds a given maximum cost.  The argument `_max_cost_exception` controls this behavior.
+
+The following example demonstrates `_max_cost` and `_max_cost_exception`:
+
+``
+#include <boost/algorithm/sequence/edit_distance.hpp>
+
+using boost::algorithm::sequence::edit_distance;
+using boost::algorithm::sequence::max_edit_cost_exception;
+using namespace boost::algorithm::sequence::parameter;
+
+// get the distance between two long sequences, but fall back to approximation if the distance is too large.
+d = edit_distance(long_sequence, another_long_sequence, _max_cost = 1000);
+
+// throw exception if the distance grows too large
+try {
+    d = edit_distance(long_sequence, another_long_sequence, _max_cost = 1000, _max_cost_exception = true);
+} catch (max_edit_cost_exception& e) {
+    // handle the exception
+}
 ``
 
 [endsect]
