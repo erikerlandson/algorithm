@@ -19,6 +19,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 * [link the_boost_algorithm_library.Sequence.edit_distance.script Edit Script Handler]
 * [link the_boost_algorithm_library.Sequence.edit_distance.substitution Substitution]
 * [link the_boost_algorithm_library.Sequence.edit_distance.max_cost Max Cost]
+* [link the_boost_algorithm_library.Sequence.edit_distance.myers_algorithm Myers Algorithm]
 
 [endsect]
 
@@ -45,7 +46,7 @@ d = edit_distance(my_vector, my_list | boost::adaptors::reversed);
 ``
 
 The implementation of `edit_distance` is based on a variation of the Dijkstra Single Source Shortest Path algorithm, tuned for the particular structure of an edit graph. It is efficient on long sequences with localized areas of differences (e.g. computing the diff of two similar files). Whenever conditions permit, an even faster specialized distance algorithm is automatically applied, from:
-[#myers_algorithm]
+[#myers_citation]
 [pre
 An O(ND) Difference Algorithm and its Variations
 Eugene W. Myers
@@ -207,7 +208,7 @@ int d = edit_distance("cat in the hat", "hat on the cat", _script = handler);
 
 [section:substitution Substitution]
 
-The substitution operation is not necessary for computing an edit distance, as it is equivalent to a deletion followed by an insertion.  Common applications of edit distance, e.g. the standard unix file diff, do not make use of subsitution.  The [link myers_algorithm Myers edit distance algorithm] implicitly assumes no substitution.  Therefore, substitution is not enabled by default in `edit_distance`.
+The substitution operation is not necessary for computing an edit distance, as it is equivalent to a deletion followed by an insertion.  Common applications of edit distance, e.g. the standard unix file diff, do not make use of subsitution.  The [link myers_citation Myers edit distance algorithm] implicitly assumes no substitution.  Therefore, substitution is not enabled by default in `edit_distance`.
 
 Substitution is enabled or disabled via the `_substitution` named parameter.  The function supports two modes of enable/disable:  If the argument is passed a value of type `bool` (i.e. `true`, `false` or a `bool` variable), then substitution is enabled/disabled at run-time.  However, if the argument is passed `boost::false_type()` or `boost::true_type()`, substitution is enabled or disabled at compile time.  This is faster, as the boolean check is not present in the code.  Compile-time disabled (the default) is the fastest of all, as no subsitution checking or code is ever compiled at all.
 
@@ -264,6 +265,19 @@ try {
 ``
 
 [endsect]
+
+[section:myers_algorithm Myers Algorithm]
+[endsect]
+
+Whenever conditions permit, the `edit_distance` function applies an implementation of the [link myers_citation Myers edit distance algorithm].  The following conditions are required:
+
+* Both sequences support random access
+* Substitution is not considered
+* Unit cost for insertion and deletion 
+
+Note that these last two are the default behaviors for `edit_distance`, and so it is otherwise sufficient to provide the function with ranges that support random access.
+
+[caution If you supply a [link the_boost_algorithm_library.Sequence.edit_distance.cost_functions custom cost object], the Myers algorithm will *not* be used, as it is not possible to determine whether or not a given cost object implements unit costs.]
 
 [endsect]
 
