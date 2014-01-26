@@ -239,6 +239,8 @@ However, edit distance in general always has a worst case time and space complex
 
 The `edit_distance` function provides an argument `_max_cost`, which takes a numeric maximum cost value.  If the function finds that the maximum cost exceeds this value, it will halt its normal computations and fall back to a fast linear algorithm to complete the rest of the computation.  This fallback can obviously not provide a minimum distance, however its answer will build on the 'full' computations performed up to that point.
 
+[note Since the fallback continues after encountering the maximum cost, the resulting edit distance will be >= max-cost.  Since the full computation is not performed, the result will also be >= the true minimum distance.]
+
 If an approximate fallback is not desired, the function may also be directed to throw an exception if the computation exceeds a given maximum cost.  The argument `_max_cost_exception` controls this behavior.
 
 The following example demonstrates `_max_cost` and `_max_cost_exception`:
