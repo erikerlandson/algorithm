@@ -55,7 +55,18 @@ d = edit_distance(my_vector, my_list | boost::adaptors::reversed);
 
 [section:arguments Arguments to edit_distance()]
 
-The `edit_distance` function accepts a variety of optional parameters, using the Boost.Parameter named argument library:
+The `edit_distance` function has two required parameters: the two sequences to be compared.  The first sequence may be thought of as the "input" sequence.  Deletion operations delete elements from this first sequence.  The second sequence may be considered the "output" sequence.  Insertion operations insert elements into this second sequence.  Substitution operations subsitute an element in the first sequence for a different element in the second sequence.
+
+Sequence arguments may be any range object that supports forward iteration (or any object that is convertible to such a range using the function `boost::as_literal`).  Some examples of such valid argument types are:
+
+* `char*` (null terminated C strings)
+* `std::string`
+* `std::vector`
+* `std::list`
+* output from range adaptors (e.g. `boost::adaptors::reversed`)
+* ranges assembled from iterators (e.g. `boost::make_iterator_range`)
+
+The `edit_distance` function also accepts a variety of optional parameters, using the Boost.Parameter named argument library:
 [table:id Optional Arguments to edit_distance
 [[Argument][Description][Default]]
 [
