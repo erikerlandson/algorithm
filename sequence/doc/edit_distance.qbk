@@ -19,13 +19,19 @@ http://www.boost.org/LICENSE_1_0.txt)
 * [link the_boost_algorithm_library.Sequence.edit_distance.script Edit Script Handler]
 * [link the_boost_algorithm_library.Sequence.edit_distance.substitution Substitution]
 * [link the_boost_algorithm_library.Sequence.edit_distance.max_cost Max Cost]
-* [link the_boost_algorithm_library.Sequence.edit_distance.myers_algorithm Myers Algorithm]
+* [link the_boost_algorithm_library.Sequence.edit_distance.implementation Implementation]
 
 [endsect]
 
 [section:overview Overview]
 
-The header file `boost/algorithm/sequence/edit_distance.hpp` provides an implementation of the [@http://en.wikipedia.org/wiki/Edit_distance edit distance] between two sequences (aka Levenshtein distance, aka string distance, aka string difference):
+The header file `boost/algorithm/sequence/edit_distance.hpp` provides an implementation of the [@http://en.wikipedia.org/wiki/Edit_distance /edit distance/ ] between two sequences (aka Levenshtein distance, aka string distance, aka string difference).  
+
+The [* /edit distance/ ] is the length of the shortest (or least-cost) /edit script/ from one sequence to another, where an [* /edit script/ ] is defined as a sequence of insertion, deletion and (optionally) substitution operations.
+
+The function implementing the edit distance is named `edit_distance`.  This function will return the edit distance between two sequences, where sequences may be any valid range object supporting forward iteration.  The `edit_distance` function will also, if requested, return the edit script.
+
+The following example illustrates basic features and functionality of `edit_distance`:
 
 ``
 #include <boost/algorithm/sequence/edit_distance.hpp>
@@ -35,23 +41,15 @@ using namespace boost::algorithm::sequence::parameter;
 
 // Returns the edit distance between two sequences.
 // Sequences may be any valid range object supporting forward iteration.
-d = edit_distance(seq1, seq2)
+d = edit_distance(seq1, seq2);
 
 // Returns the edit distance, and calls special handler methods from object 'script_handler'
 // on the correspondiung "script" of edit operations:
-d = edit_distance(seq1, seq2, _script = script_handler)
+d = edit_distance(seq1, seq2, _script = script_handler);
 
 // Sequences need not be the same type:
 d = edit_distance(my_vector, my_list | boost::adaptors::reversed);
 ``
-
-The implementation of `edit_distance` is based on a variation of the Dijkstra Single Source Shortest Path algorithm, tuned for the particular structure of an edit graph. It is efficient on long sequences with localized areas of differences (e.g. computing the diff of two similar files). Whenever conditions permit, an even faster specialized distance algorithm is automatically applied, from:
-[#myers_citation]
-[pre
-An O(ND) Difference Algorithm and its Variations
-Eugene W. Myers
-Dept of Computer Science, University of Arizona
-]
 
 [endsect]
 
@@ -263,13 +261,21 @@ try {
     // handle the exception
 }
 ``
-
 [endsect]
 
-[section:myers_algorithm Myers Algorithm]
-[endsect]
+[section:implementation Implementation]
 
-Whenever conditions permit, the `edit_distance` function applies an implementation of the [link myers_citation Myers edit distance algorithm].  The following conditions are required:
+The implementation of `edit_distance` is based on a variation of the Dijkstra Single Source Shortest Path algorithm, tuned for the particular structure of an edit graph. It is efficient on long sequences with localized areas of differences (e.g. computing the diff of two similar files).
+
+Whenever conditions permit, an even faster specialized distance algorithm is automatically applied, from:
+[#myers_citation]
+[pre
+An O(ND) Difference Algorithm and its Variations
+Eugene W. Myers
+Dept of Computer Science, University of Arizona
+]
+
+The Myers algorithm will be applied when the following conditions are met:
 
 * Both sequences support random access
 * Substitution is not considered
@@ -278,6 +284,8 @@ Whenever conditions permit, the `edit_distance` function applies an implementati
 Note that these last two are the default behaviors for `edit_distance`, and so it is otherwise sufficient to provide the function with ranges that support random access.
 
 [caution If you supply a [link the_boost_algorithm_library.Sequence.edit_distance.cost_functions custom cost object], the Myers algorithm will *not* be used, as it is not possible to determine whether or not a given cost object implements unit costs.]
+
+[endsect]
 
 [endsect]
 
