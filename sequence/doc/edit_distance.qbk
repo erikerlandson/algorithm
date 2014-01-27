@@ -101,6 +101,8 @@ The `edit_distance` function also accepts a variety of optional parameters, usin
 ]
 ]
 
+[tip Sequence elemements may /also/ have differing types, as long as they are compatible with cost and equality functions.]
+
 [endsect]
 
 [section:cost_functions Cost Functions]
@@ -136,6 +138,9 @@ struct custom_cost {
 
 // Invoke edit_distance with the custom cost functions:
 int d = edit_distance("spaces here",  "  spaces   there ",  _cost = custom_cost());
+
+// inserting 't' costs 1.  Inserting extra spaces costs nothing:
+BOOST_ASSERT(d == 1);
 ``
 
 [tip Although edit distances are typically integer values, the cost type can also be defined as a floating point.]
@@ -166,6 +171,9 @@ struct custom_equal {
 
 // apply the customized definition of element equality:
 int d = edit_distance("case", "CaSe", _equal = custom_equal());
+
+// characters differing only by case are considered equal, and so distance is zero:
+BOOST_ASSERT(d == 0);
 ``
 [endsect]
 
@@ -177,7 +185,7 @@ An edit script handler must define the methods: `insertion`, `deletion`, `substi
 
 [tip When substitution is disabled at compile-time, then the `substitution` method is not required.]
 
-By default, the `edit_distance` function provides no script handling object.  All information about the ordering of edit operations is ignored, and only the final edit distance is returned.
+By default, the `edit_distance` function provides no script handling object.  All information about the script of edit operations is ignored, and only the final edit distance is returned.
 
 The following example demonstrates the definition of an edit script handler:
 
@@ -201,17 +209,30 @@ struct script_handler {
     // optional if substitution is disabled at compile time
     void substitution(char e1, char e2, int cost) { cout << make_tuple(':', e1, e2, cost); }
 
-    // cost is known to be zero by definition
-    void equality(char e1, char e2) { cout << make_tuple('=', e1, e2); }
+    // cost is known to be zero by definition, so it is not a parameter
+    void equality(char, char) { /* ignore equality in output */ }
 };
 
 // A script handler is passed as a non-const reference, and must be declared prior to 
 // calling edit_distance()
 script_handler handler;
 
+cout << boost::tuples::set_delimiter(' ');
+
 // the edit script of operations will be passed to the methods of handler:
 int d = edit_distance("cat in the hat", "hat on the cat", _script = handler);
+
+cout << std::endl;
+
+// delete 'c', insert 'h', delete 'i', insert 'o', delete 'h', insert 'c'
+BOOST_ASSERT(d == 6);
+
+// handler will output:  "(- c 1)(+ h 1)(- i 1)(+ o 1)(- h 1)(+ c 1)"
+// NOTE: the exact ordering of edit script operations is not generally guaranteed.  
+// For example, the following permutation might also be output:
+// "(- h 1)(+ c 1)(- i 1)(+ o 1)(- c 1)(+ h 1)"
 ``
+[note Minimal edit scripts are not unique.  For example a deletion followed by an insertion is often equivalent to the reverse.  In general, `edit_distance` cannot guarantee which of a possible set of equivalent permutations will be output.  The script may be collected and sorted using a custom script handler, if a particular ordering scheme is desired for an application.]
 
 [endsect]
 
@@ -230,13 +251,19 @@ using namespace boost::algorithm::sequence::parameter;
 
 // turn substitution on or off at run-time
 bool sub_switch = true;
-d = edit_distance("cat", "bat", _substitution = sub_switch);
+int d = edit_distance("cat", "bat", _substitution = sub_switch);
+// substitute 'c' -> 'b'
+BOOST_ASSERT(d == 1);
 
 // enable substitution at compile-time
 d = edit_distance("cat", "hat", _substitution = boost::true_type());
+// substitute 'c' -> 'h'
+BOOST_ASSERT(d == 1);
 
 // disable substitution at compile-time (the default)
-d = edit_distance("cat", "hat", _substitution = boost::false_type());
+d = edit_distance("cat", "mat", _substitution = boost::false_type());
+// delete 'c', insert 'm'
+BOOST_ASSERT(d == 2);
 ``
 
 [endsect]
@@ -249,7 +276,7 @@ However, edit distance in general always has a worst case time and space complex
 
 The `edit_distance` function provides an argument `_max_cost`, which takes a numeric maximum cost value.  If the function finds that the maximum cost exceeds this value, it will halt its normal computations and fall back to a fast linear algorithm to complete the rest of the computation.  This fallback can obviously not provide a minimum distance, however its answer will build on the 'full' computations performed up to that point.
 
-[note Since the fallback continues after encountering the maximum cost, the resulting edit distance will be >= max-cost.  Since the full computation is not performed, the result will also be >= the true minimum distance.]
+[note Since the fallback continues after encountering the maximum cost, the resulting edit distance will be >= max-cost.  Since the full edit path search is not performed, the result will also be >= the true minimum distance.]
 
 If an approximate fallback is not desired, the function may also be directed to throw an exception if the computation exceeds a given maximum cost.  The argument `_max_cost_exception` controls this behavior.
 
