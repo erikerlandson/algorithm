@@ -62,8 +62,7 @@
               Cost</a>
             </li>
 <li class="listitem">
-              <a class="link" href="Sequence.html#the_boost_algorithm_library.Sequence.edit_distance.myers_algorithm" title="Myers Algorithm">Myers
-              Algorithm</a>
+              <a class="link" href="Sequence.html#the_boost_algorithm_library.Sequence.edit_distance.implementation" title="Implementation">Implementation</a>
             </li>
 </ul></div>
 </div>
@@ -73,9 +72,27 @@
 </h4></div></div></div>
 <p>
           The header file <code class="computeroutput"><span class="identifier">boost</span><span class="special">/</span><span class="identifier">algorithm</span><span class="special">/</span><span class="identifier">sequence</span><span class="special">/</span><span class="identifier">edit_distance</span><span class="special">.</span><span class="identifier">hpp</span></code> provides an implementation of the
-          <a href="http://en.wikipedia.org/wiki/Edit_distance" target="_top">edit distance</a>
-          between two sequences (aka Levenshtein distance, aka string distance, aka
-          string difference):
+          <a href="http://en.wikipedia.org/wiki/Edit_distance" target="_top"><span class="emphasis"><em>edit
+          distance</em></span> </a> between two sequences (aka Levenshtein distance,
+          aka string distance, aka string difference).
+        </p>
+<p>
+          The <span class="bold"><strong><span class="emphasis"><em>edit distance</em></span> </strong></span>
+          is the length of the shortest (or least-cost) <span class="emphasis"><em>edit script</em></span>
+          from one sequence to another, where an <span class="bold"><strong><span class="emphasis"><em>edit
+          script</em></span> </strong></span> is defined as a sequence of insertion, deletion
+          and (optionally) substitution operations.
+        </p>
+<p>
+          The function implementing the edit distance is named <code class="computeroutput"><span class="identifier">edit_distance</span></code>.
+          This function will return the edit distance between two sequences, where
+          sequences may be any valid range object supporting forward iteration. The
+          <code class="computeroutput"><span class="identifier">edit_distance</span></code> function
+          will also, if requested, return the edit script.
+        </p>
+<p>
+          The following example illustrates basic features and functionality of
+          <code class="computeroutput"><span class="identifier">edit_distance</span></code>:
         </p>
 <p>
 </p>
@@ -86,29 +103,17 @@
 
 <span class="comment">// Returns the edit distance between two sequences.</span>
 <span class="comment">// Sequences may be any valid range object supporting forward iteration.</span>
-<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="identifier">seq1</span><span class="special">,</span> <span class="identifier">seq2</span><span class="special">)</span>
+<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="identifier">seq1</span><span class="special">,</span> <span class="identifier">seq2</span><span class="special">);</span>
 
 <span class="comment">// Returns the edit distance, and calls special handler methods from object 'script_handler'</span>
 <span class="comment">// on the correspondiung "script" of edit operations:</span>
-<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="identifier">seq1</span><span class="special">,</span> <span class="identifier">seq2</span><span class="special">,</span> <span class="identifier">_script</span> <span class="special">=</span> <span class="identifier">script_handler</span><span class="special">)</span>
+<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="identifier">seq1</span><span class="special">,</span> <span class="identifier">seq2</span><span class="special">,</span> <span class="identifier">_script</span> <span class="special">=</span> <span class="identifier">script_handler</span><span class="special">);</span>
 
 <span class="comment">// Sequences need not be the same type:</span>
 <span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="identifier">my_vector</span><span class="special">,</span> <span class="identifier">my_list</span> <span class="special">|</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">adaptors</span><span class="special">::</span><span class="identifier">reversed</span><span class="special">);</span>
 </pre>
 <p>
         </p>
-<p>
-          The implementation of <code class="computeroutput"><span class="identifier">edit_distance</span></code>
-          is based on a variation of the Dijkstra Single Source Shortest Path algorithm,
-          tuned for the particular structure of an edit graph. It is efficient on
-          long sequences with localized areas of differences (e.g. computing the
-          diff of two similar files). Whenever conditions permit, an even faster
-          specialized distance algorithm is automatically applied, from: <a name="myers_citation"></a>
-        </p>
-<pre class="programlisting">An O(ND) Difference Algorithm and its Variations
-Eugene W. Myers
-Dept of Computer Science, University of Arizona
-</pre>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -117,8 +122,45 @@ Dept of Computer Science, University of Arizona
 </h4></div></div></div>
 <p>
           The <code class="computeroutput"><span class="identifier">edit_distance</span></code> function
-          accepts a variety of optional parameters, using the Boost.Parameter named
-          argument library:
+          has two required parameters: the two sequences to be compared. The first
+          sequence may be thought of as the "input" sequence. Deletion
+          operations delete elements from this first sequence. The second sequence
+          may be considered the "output" sequence. Insertion operations
+          insert elements into this second sequence. Substitution operations subsitute
+          an element in the first sequence for a different element in the second
+          sequence.
+        </p>
+<p>
+          Sequence arguments may be any range object that supports forward iteration
+          (or any object that is convertible to such a range using the function
+          <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">as_literal</span></code>). Some examples of such valid
+          argument types are:
+        </p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+              <code class="computeroutput"><span class="keyword">char</span><span class="special">*</span></code>
+              (null terminated C strings)
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">string</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">vector</span></code>
+            </li>
+<li class="listitem">
+              <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">list</span></code>
+            </li>
+<li class="listitem">
+              output from range adaptors (e.g. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">adaptors</span><span class="special">::</span><span class="identifier">reversed</span></code>)
+            </li>
+<li class="listitem">
+              ranges assembled from iterators (e.g. <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">make_iterator_range</span></code>)
+            </li>
+</ul></div>
+<p>
+          The <code class="computeroutput"><span class="identifier">edit_distance</span></code> function
+          also accepts a variety of optional parameters, using the Boost.Parameter
+          named argument library:
         </p>
 <div class="table">
 <a name="the_boost_algorithm_library.Sequence.edit_distance.arguments.id"></a><p class="title"><b>Table&#160;1.&#160;Optional Arguments to edit_distance</b></p>
@@ -282,7 +324,16 @@ Dept of Computer Science, University of Arizona
 </tbody>
 </table></div>
 </div>
-<br class="table-break">
+<br class="table-break"><div class="tip"><table border="0" summary="Tip">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="../../../../../doc/src/images/tip.png"></td>
+<th align="left">Tip</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Sequence elemements may <span class="emphasis"><em>also</em></span> have differing types,
+            as long as they are compatible with cost and equality functions.
+          </p></td></tr>
+</table></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -339,6 +390,9 @@ Dept of Computer Science, University of Arizona
 
 <span class="comment">// Invoke edit_distance with the custom cost functions:</span>
 <span class="keyword">int</span> <span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"spaces here"</span><span class="special">,</span>  <span class="string">"  spaces   there "</span><span class="special">,</span>  <span class="identifier">_cost</span> <span class="special">=</span> <span class="identifier">custom_cost</span><span class="special">());</span>
+
+<span class="comment">// inserting 't' costs 1.  Inserting extra spaces costs nothing:</span>
+<span class="identifier">BOOST_ASSERT</span><span class="special">(</span><span class="identifier">d</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
 </pre>
 <p>
         </p>
@@ -407,6 +461,9 @@ Dept of Computer Science, University of Arizona
 
 <span class="comment">// apply the customized definition of element equality:</span>
 <span class="keyword">int</span> <span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"case"</span><span class="special">,</span> <span class="string">"CaSe"</span><span class="special">,</span> <span class="identifier">_equal</span> <span class="special">=</span> <span class="identifier">custom_equal</span><span class="special">());</span>
+
+<span class="comment">// characters differing only by case are considered equal, and so distance is zero:</span>
+<span class="identifier">BOOST_ASSERT</span><span class="special">(</span><span class="identifier">d</span> <span class="special">==</span> <span class="number">0</span><span class="special">);</span>
 </pre>
 <p>
         </p>
@@ -438,7 +495,7 @@ Dept of Computer Science, University of Arizona
 <p>
           By default, the <code class="computeroutput"><span class="identifier">edit_distance</span></code>
           function provides no script handling object. All information about the
-          ordering of edit operations is ignored, and only the final edit distance
+          script of edit operations is ignored, and only the final edit distance
           is returned.
         </p>
 <p>
@@ -465,19 +522,44 @@ Dept of Computer Science, University of Arizona
     <span class="comment">// optional if substitution is disabled at compile time</span>
     <span class="keyword">void</span> <span class="identifier">substitution</span><span class="special">(</span><span class="keyword">char</span> <span class="identifier">e1</span><span class="special">,</span> <span class="keyword">char</span> <span class="identifier">e2</span><span class="special">,</span> <span class="keyword">int</span> <span class="identifier">cost</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">make_tuple</span><span class="special">(</span><span class="char">':'</span><span class="special">,</span> <span class="identifier">e1</span><span class="special">,</span> <span class="identifier">e2</span><span class="special">,</span> <span class="identifier">cost</span><span class="special">);</span> <span class="special">}</span>
 
-    <span class="comment">// cost is known to be zero by definition</span>
-    <span class="keyword">void</span> <span class="identifier">equality</span><span class="special">(</span><span class="keyword">char</span> <span class="identifier">e1</span><span class="special">,</span> <span class="keyword">char</span> <span class="identifier">e2</span><span class="special">)</span> <span class="special">{</span> <span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">make_tuple</span><span class="special">(</span><span class="char">'='</span><span class="special">,</span> <span class="identifier">e1</span><span class="special">,</span> <span class="identifier">e2</span><span class="special">);</span> <span class="special">}</span>
+    <span class="comment">// cost is known to be zero by definition, so it is not a parameter</span>
+    <span class="keyword">void</span> <span class="identifier">equality</span><span class="special">(</span><span class="keyword">char</span><span class="special">,</span> <span class="keyword">char</span><span class="special">)</span> <span class="special">{</span> <span class="comment">/* ignore equality in output */</span> <span class="special">}</span>
 <span class="special">};</span>
 
 <span class="comment">// A script handler is passed as a non-const reference, and must be declared prior to </span>
 <span class="comment">// calling edit_distance()</span>
 <span class="identifier">script_handler</span> <span class="identifier">handler</span><span class="special">;</span>
 
+<span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">tuples</span><span class="special">::</span><span class="identifier">set_delimiter</span><span class="special">(</span><span class="char">' '</span><span class="special">);</span>
+
 <span class="comment">// the edit script of operations will be passed to the methods of handler:</span>
 <span class="keyword">int</span> <span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"cat in the hat"</span><span class="special">,</span> <span class="string">"hat on the cat"</span><span class="special">,</span> <span class="identifier">_script</span> <span class="special">=</span> <span class="identifier">handler</span><span class="special">);</span>
+
+<span class="identifier">cout</span> <span class="special">&lt;&lt;</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">endl</span><span class="special">;</span>
+
+<span class="comment">// delete 'c', insert 'h', delete 'i', insert 'o', delete 'h', insert 'c'</span>
+<span class="identifier">BOOST_ASSERT</span><span class="special">(</span><span class="identifier">d</span> <span class="special">==</span> <span class="number">6</span><span class="special">);</span>
+
+<span class="comment">// handler will output:  "(- c 1)(+ h 1)(- i 1)(+ o 1)(- h 1)(+ c 1)"</span>
+<span class="comment">// NOTE: the exact ordering of edit script operations is not generally guaranteed.  </span>
+<span class="comment">// For example, the following permutation might also be output:</span>
+<span class="comment">// "(- h 1)(+ c 1)(- i 1)(+ o 1)(- c 1)(+ h 1)"</span>
 </pre>
 <p>
         </p>
+<div class="note"><table border="0" summary="Note">
+<tr>
+<td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="../../../../../doc/src/images/note.png"></td>
+<th align="left">Note</th>
+</tr>
+<tr><td align="left" valign="top"><p>
+            Minimal edit scripts are not unique. For example a deletion followed
+            by an insertion is often equivalent to the reverse. In general, <code class="computeroutput"><span class="identifier">edit_distance</span></code> cannot guarantee which
+            of a possible set of equivalent permutations will be output. The script
+            may be collected and sorted using a custom script handler, if a particular
+            ordering scheme is desired for an application.
+          </p></td></tr>
+</table></div>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
@@ -513,13 +595,19 @@ Dept of Computer Science, University of Arizona
 
 <span class="comment">// turn substitution on or off at run-time</span>
 <span class="keyword">bool</span> <span class="identifier">sub_switch</span> <span class="special">=</span> <span class="keyword">true</span><span class="special">;</span>
-<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"cat"</span><span class="special">,</span> <span class="string">"bat"</span><span class="special">,</span> <span class="identifier">_substitution</span> <span class="special">=</span> <span class="identifier">sub_switch</span><span class="special">);</span>
+<span class="keyword">int</span> <span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"cat"</span><span class="special">,</span> <span class="string">"bat"</span><span class="special">,</span> <span class="identifier">_substitution</span> <span class="special">=</span> <span class="identifier">sub_switch</span><span class="special">);</span>
+<span class="comment">// substitute 'c' -&gt; 'b'</span>
+<span class="identifier">BOOST_ASSERT</span><span class="special">(</span><span class="identifier">d</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
 
 <span class="comment">// enable substitution at compile-time</span>
 <span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"cat"</span><span class="special">,</span> <span class="string">"hat"</span><span class="special">,</span> <span class="identifier">_substitution</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">true_type</span><span class="special">());</span>
+<span class="comment">// substitute 'c' -&gt; 'h'</span>
+<span class="identifier">BOOST_ASSERT</span><span class="special">(</span><span class="identifier">d</span> <span class="special">==</span> <span class="number">1</span><span class="special">);</span>
 
 <span class="comment">// disable substitution at compile-time (the default)</span>
-<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"cat"</span><span class="special">,</span> <span class="string">"hat"</span><span class="special">,</span> <span class="identifier">_substitution</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">false_type</span><span class="special">());</span>
+<span class="identifier">d</span> <span class="special">=</span> <span class="identifier">edit_distance</span><span class="special">(</span><span class="string">"cat"</span><span class="special">,</span> <span class="string">"mat"</span><span class="special">,</span> <span class="identifier">_substitution</span> <span class="special">=</span> <span class="identifier">boost</span><span class="special">::</span><span class="identifier">false_type</span><span class="special">());</span>
+<span class="comment">// delete 'c', insert 'm'</span>
+<span class="identifier">BOOST_ASSERT</span><span class="special">(</span><span class="identifier">d</span> <span class="special">==</span> <span class="number">2</span><span class="special">);</span>
 </pre>
 <p>
         </p>
@@ -558,8 +646,9 @@ Dept of Computer Science, University of Arizona
 </tr>
 <tr><td align="left" valign="top"><p>
             Since the fallback continues after encountering the maximum cost, the
-            resulting edit distance will be &gt;= max-cost. Since the full computation
-            is not performed, the result will also be &gt;= the true minimum distance.
+            resulting edit distance will be &gt;= max-cost. Since the full edit path
+            search is not performed, the result will also be &gt;= the true minimum
+            distance.
           </p></td></tr>
 </table></div>
 <p>
@@ -593,43 +682,57 @@ Dept of Computer Science, University of Arizona
 <p>
         </p>
 </div>
-<div class="section"><div class="titlepage"><div><div><h4 class="title">
-<a name="the_boost_algorithm_library.Sequence.edit_distance.myers_algorithm"></a><a class="link" href="Sequence.html#the_boost_algorithm_library.Sequence.edit_distance.myers_algorithm" title="Myers Algorithm">Myers
-        Algorithm</a>
-</h4></div></div></div></div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="the_boost_algorithm_library.Sequence.edit_distance.implementation"></a><a class="link" href="Sequence.html#the_boost_algorithm_library.Sequence.edit_distance.implementation" title="Implementation">Implementation</a>
+</h4></div></div></div>
 <p>
-        Whenever conditions permit, the <code class="computeroutput"><span class="identifier">edit_distance</span></code>
-        function applies an implementation of the <a class="link" href="Sequence.html#myers_citation">Myers
-        edit distance algorithm</a>. The following conditions are required:
-      </p>
+          The implementation of <code class="computeroutput"><span class="identifier">edit_distance</span></code>
+          is based on a variation of the Dijkstra Single Source Shortest Path algorithm,
+          tuned for the particular structure of an edit graph. It is efficient on
+          long sequences with localized areas of differences (e.g. computing the
+          diff of two similar files).
+        </p>
+<p>
+          Whenever conditions permit, an even faster specialized distance algorithm
+          is automatically applied, from: <a name="myers_citation"></a>
+        </p>
+<pre class="programlisting">An O(ND) Difference Algorithm and its Variations
+Eugene W. Myers
+Dept of Computer Science, University of Arizona
+</pre>
+<p>
+          The Myers algorithm will be applied when the following conditions are met:
+        </p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
-            Both sequences support random access
-          </li>
+              Both sequences support random access
+            </li>
 <li class="listitem">
-            Substitution is not considered
-          </li>
+              Substitution is not considered
+            </li>
 <li class="listitem">
-            Unit cost for insertion and deletion
-          </li>
+              Unit cost for insertion and deletion
+            </li>
 </ul></div>
 <p>
-        Note that these last two are the default behaviors for <code class="computeroutput"><span class="identifier">edit_distance</span></code>,
-        and so it is otherwise sufficient to provide the function with ranges that
-        support random access.
-      </p>
+          Note that these last two are the default behaviors for <code class="computeroutput"><span class="identifier">edit_distance</span></code>,
+          and so it is otherwise sufficient to provide the function with ranges that
+          support random access.
+        </p>
 <div class="caution"><table border="0" summary="Caution">
 <tr>
 <td rowspan="2" align="center" valign="top" width="25"><img alt="[Caution]" src="../../../../../doc/src/images/caution.png"></td>
 <th align="left">Caution</th>
 </tr>
 <tr><td align="left" valign="top"><p>
-          If you supply a <a class="link" href="Sequence.html#the_boost_algorithm_library.Sequence.edit_distance.cost_functions" title="Cost Functions">custom
-          cost object</a>, the Myers algorithm will <span class="bold"><strong>not</strong></span>
-          be used, as it is not possible to determine whether or not a given cost
-          object implements unit costs.
-        </p></td></tr>
+            If you supply a <a class="link" href="Sequence.html#the_boost_algorithm_library.Sequence.edit_distance.cost_functions" title="Cost Functions">custom
+            cost object</a>, the Myers algorithm will <span class="bold"><strong>not</strong></span>
+            be used, as it is not possible to determine whether or not a given cost
+            object implements unit costs.
+          </p></td></tr>
 </table></div>
+</div>
 </div>
 </div>
 <table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
