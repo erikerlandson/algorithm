@@ -196,13 +196,13 @@ struct output_check_script {
     }
 
     std::stringstream ss;
-    long j1;
-    long j2;
     std::vector<value_type> seq1;
     std::vector<value_type> seq2;
     bool correct;
-    Equal equal;
+    long j1;
+    long j2;
     cost_type tcost;
+    Equal equal;
 };
 
 template <typename ValueType, typename CostType = long, typename Equal=std::equal_to<ValueType> >
@@ -241,13 +241,13 @@ undef_sub_output(const std::vector<value_type>& seq1_, const std::vector<value_t
     }
 
     std::stringstream ss;
-    long j1;
-    long j2;
     std::vector<value_type> seq1;
     std::vector<value_type> seq2;
     bool correct;
-    Equal equal;
+    long j1;
+    long j2;
     cost_type tcost;
+    Equal equal;
 };
 
 
@@ -298,11 +298,11 @@ struct output_check_script_long_string {
         tcost = 0;
     }
 
-    long j1;
-    long j2;
     std::string seq1;
     std::string seq2;
     bool correct;
+    long j1;
+    long j2;
     cost_type tcost;
 };
 
@@ -371,11 +371,11 @@ struct output_check_script_string {
         if (tcost != c) correct = false;
     }
 
-    long j1;
-    long j2;
     std::string seq1;
     std::string seq2;
     bool correct;
+    long j1;
+    long j2;
     cost_type tcost;
 };
 
