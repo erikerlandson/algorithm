@@ -14,3 +14,4 @@ exe edit_distance_range_example : edit_distance_range_example.cpp /boost/system/
 exe edit_script_example : edit_script_example.cpp /boost/system//boost_system ;
 exe edit_script_cost_example : edit_script_cost_example.cpp /boost/system//boost_system ;
 exe edit_script_range_example : edit_script_range_example.cpp /boost/system//boost_system ;
+exe edit_distance_diff_example : edit_distance_diff_example.cpp /boost/system//boost_system ;
