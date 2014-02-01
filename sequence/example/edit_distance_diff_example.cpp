@@ -45,7 +45,7 @@ void load_file_lines(char const* fname, vector<string>& lines) {
 
 struct diff_handler {
     struct hunk {
-        hunk() : del(), ins(), del_pos(0), ins_pos(0) {}
+        hunk() : del_pos(0), ins_pos(0), del(), ins()  {}
         size_t del_pos;
         size_t ins_pos;
         vector<string> del;
