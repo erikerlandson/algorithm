@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(undefined_sub) {
     {
         // test sssp implementation
         undef_sub_output<char, unsigned> ob(ASVECTOR(seq1), ASVECTOR(seq2));
-        BOOST_CHECK_EQUAL(edit_distance(seq1, seq2, _script=ob, _cost=undef_sub_cost()), 2);
+        BOOST_CHECK_EQUAL(edit_distance(seq1, seq2, _script=ob, _cost=undef_sub_cost()), unsigned(2));
         ob.finalize(2);
         BOOST_CHECK(ob.correct);
     }
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(undefined_sub) {
     {
         // test invoking myers specialization
         undef_sub_output<char, unsigned> ob(ASVECTOR(seq1), ASVECTOR(seq2));
-        BOOST_CHECK_EQUAL(edit_distance(seq1, seq2, _script=ob), 2);
+        BOOST_CHECK_EQUAL(edit_distance(seq1, seq2, _script=ob), unsigned(2));
         ob.finalize(2);
         BOOST_CHECK(ob.correct);
     }
@@ -255,9 +255,9 @@ BOOST_AUTO_TEST_CASE(max_cost_1) {
     random_localized_deviations(seqdata, N, 100, 5, 10);
     int n = 0;
     double t0 = time(0);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
-        for (int j = 0;  j < i;  ++j) {
+        for (unsigned int j = 0;  j < i;  ++j) {
             output_check_script_long_string out(seqdata[i], seqdata[j]);
 
             unsigned int d = edit_distance(seqdata[i], seqdata[j], _script=out);
@@ -329,9 +329,9 @@ BOOST_AUTO_TEST_CASE(max_cost_2) {
     random_localized_deviations(seqdata, N, 100, 5, 10);
     int n = 0;
     double t0 = time(0);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
-        for (int j = 0;  j < i;  ++j) {
+        for (unsigned int j = 0;  j < i;  ++j) {
             output_check_script_long_string out(seqdata[i], seqdata[j]);
 
             unsigned int d = edit_distance(seqdata[i], seqdata[j], _script=out, _substitution=true_type());
@@ -405,7 +405,7 @@ BOOST_AUTO_TEST_CASE(failure_1) {
     std::string seq1 = "xxxxxxxxx3d07a05d385h77xxxxxxxxxxxx";
     std::string seq2 = "xbd9a3d2gjf6b7a77hjcxxxxxxxxxxxxxxx";
     output_check_script_string out(seq1, seq2);
-    unsigned int d = edit_distance(seq1, seq2, _script = out, _substitution=true_type(), _cost = cost_mixed_ops());
+    edit_distance(seq1, seq2, _script = out, _substitution=true_type(), _cost = cost_mixed_ops());
     out.finalize();
     BOOST_CHECK_MESSAGE(out.correct, "\n\nseq1= '" << seq1 << "'\nseq2= '"<< seq2 <<"'\n\n");
 }
@@ -418,9 +418,9 @@ BOOST_AUTO_TEST_CASE(timing_1) {
     random_localized_deviations(seqdata, N, 100000, 5, 20, 100);
     int n = 0;
     double t0 = time(0);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
-        for (int j = 0;  j < i;  ++j) {
+        for (unsigned int j = 0;  j < i;  ++j) {
             output_check_script_long_string out(seqdata[i], seqdata[j]);
             unsigned int d = edit_distance(seqdata[i], seqdata[j], _script = out, _substitution=true_type(), _cost = cost_mixed_ops());
             out.finalize(d);
@@ -440,9 +440,9 @@ BOOST_AUTO_TEST_CASE(crosscheck_1) {
     random_localized_deviations(seqdata, N, 100, 2, 25);
     int n = 0;
     double t0 = time(0);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
-        for (int j = 0;  j < i;  ++j) {
+        for (unsigned int j = 0;  j < i;  ++j) {
             output_check_script_long_string out(seqdata[i], seqdata[j]);
             unsigned int d1 = edit_distance(seqdata[i], seqdata[j], _script = out, _substitution=true_type(), _cost = cost_mixed_ops());
             unsigned int d2 = edit_distance(seqdata[i], seqdata[j], _substitution=true_type(), _cost = cost_mixed_ops());
@@ -466,9 +466,9 @@ BOOST_AUTO_TEST_CASE(myers_sssp_crosscheck_1) {
     random_localized_deviations(seqdata, N, 100, 2, 25);
     int n = 0;
     double t0 = time(0);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
-        for (int j = 0;  j < i;  ++j) {
+        for (unsigned int j = 0;  j < i;  ++j) {
             output_check_script_long_string out1(seqdata[i], seqdata[j]);
             output_check_script_long_string out2(seqdata[i], seqdata[j]);
             // Myers algorithm
@@ -497,9 +497,9 @@ BOOST_AUTO_TEST_CASE(myers_dist_path_crosscheck_1) {
     random_localized_deviations(seqdata, N, 100, 5, 10);
     int n = 0;
     double t0 = time(0);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
-        for (int j = 0;  j < i;  ++j) {
+        for (unsigned int j = 0;  j < i;  ++j) {
             BOOST_TEST_CHECKPOINT("n= " << n << "   i= " << i << "   j= " << j);
             output_check_script_long_string out(seqdata[i], seqdata[j]);
             unsigned int d2 = edit_distance(seqdata[i], seqdata[j], _substitution=boost::false_type());
