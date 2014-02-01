@@ -265,7 +265,6 @@ typedef typename range_iterator<Range1 const>::type itr1_t;
 typedef typename range_iterator<Range2 const>::type itr2_t;
 
 typedef std::vector<int>::difference_type diff_type;
-typedef size_t size_type;
 
 typedef std::vector<diff_type>::iterator itrv_t;
 
@@ -273,8 +272,8 @@ typedef max_cost_checker_myers<MaxCost, diff_type, diff_type> max_cost_type;
 
 
 template <typename Vec, typename Itr> 
-inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, size_type& R, const diff_type& D, const diff_type& delta) const {
-    size_type Rp = R + (R>>1);
+inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& D, const diff_type& delta) const {
+    diff_type Rp = R + (R>>1);
     V_data.resize(2 + 4*Rp);
     Vf = V_data.begin() + R;
     Vr = V_data.begin() + (3*R+1) - delta;
@@ -290,7 +289,7 @@ inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, size_type& R, const diff_type&
     R = Rp;
 }
 
-std::string dump(const itr1_t& S1, const size_type& len1) const {
+std::string dump(const itr1_t& S1, const diff_type& len1) const {
     std::string r;
     for (int j = 0; j < len1;  ++j) r += S1[j];
     return r;
@@ -298,9 +297,9 @@ std::string dump(const itr1_t& S1, const size_type& len1) const {
 
 diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type>& max_cost_check, const bool max_cost_exception, 
                             const Equal& equal, const MaxCost& max_cost, Output& output,
-                            const itr1_t& seq1, const size_type& len1, const itr2_t& seq2, const size_type& len2,
+                            const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2,
                             const diff_type& eqb, const diff_type& eqe,
-                            const itr1_t& S1, const size_type& L1, const itr2_t& S2, const size_type& L2,
+                            const itr1_t& S1, const diff_type& L1, const itr2_t& S2, const diff_type& L2,
                             std::vector<diff_type>& V_data, const itrv_t& Vf, const itrv_t& Vr, const diff_type& delta, const diff_type& D) const {
     if (max_cost_exception) throw max_edit_cost_exception();
 
@@ -383,7 +382,7 @@ diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type
 }
 
 typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
-path(const itr1_t& seq1, const size_type& len1, const itr2_t& seq2, const size_type& len2, const Equal& equal, const MaxCost& max_cost, const bool max_cost_exception, Output& output, std::vector<diff_type>& V_data) const {
+path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2, const Equal& equal, const MaxCost& max_cost, const bool max_cost_exception, Output& output, std::vector<diff_type>& V_data) const {
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
     for (;  eqb < std::min(len1, len2);  ++eqb) if (!equal(seq1[eqb],seq2[eqb])) break;
@@ -417,7 +416,7 @@ path(const itr1_t& seq1, const size_type& len1, const itr2_t& seq2, const size_t
     // set up 'V' vectors for forward and reverse edit path diagonals
     // note, these are maintained to allow negative indexes
     if (V_data.size() <= 0) V_data.resize(2*(1+2*10));
-    size_type R = V_data.size()/4;
+    diff_type R = V_data.size()/4;
     std::vector<diff_type>::iterator Vf = V_data.begin()+R;
     std::vector<diff_type>::iterator Vr = V_data.begin()+(3*R+1)-delta;
 

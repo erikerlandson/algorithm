@@ -178,20 +178,19 @@ typedef typename range_iterator<Range1 const>::type itr1_t;
 typedef typename range_iterator<Range2 const>::type itr2_t;
 
 typedef std::vector<int>::difference_type diff_type;
-typedef std::vector<int>::size_type size_type;
 
 typedef typename std::vector<diff_type>::iterator itrv_t;
 typedef max_cost_checker_myers<MaxCost, diff_type, diff_type> max_cost_type;
 
-std::string dump(const itr1_t& S1, const size_type& len1) const {
+std::string dump(const itr1_t& S1, const diff_type& len1) const {
     std::string r;
     for (int j = 0; j < len1;  ++j) r += S1[j];
     return r;
 }
 
 template <typename Vec, typename Itr> 
-inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, size_type& R, const diff_type& D, const diff_type& delta) const {
-    size_type Rp = R + (R>>1);
+inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& D, const diff_type& delta) const {
+    diff_type Rp = R + (R>>1);
     V_data.resize(2 + 4*Rp);
     Vf = V_data.begin() + R;
     Vr = V_data.begin() + (3*R+1) - delta;
@@ -208,7 +207,7 @@ inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, size_type& R, const diff_type&
 }
 
 diff_type max_cost_fallback(max_cost_type& max_cost_check, const bool max_cost_exception, const Equal& equal,
-                            const itr1_t& S1, const size_type& L1, const itr2_t& S2, const size_type& L2,
+                            const itr1_t& S1, const diff_type& L1, const itr2_t& S2, const diff_type& L2,
                             const itrv_t& Vf, const itrv_t& Vr, const diff_type& delta, const diff_type& D) const {
     if (max_cost_exception) throw max_edit_cost_exception();
 
@@ -286,8 +285,8 @@ typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
 operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, const Equal& equal, const boost::false_type&, const MaxCost& max_cost, const bool max_cost_exception) const {
     itr1_t seq1 = boost::begin(seq1_);
     itr2_t seq2 = boost::begin(seq2_);
-    size_type len1 = distance(seq1_);
-    size_type len2 = distance(seq2_);
+    diff_type len1 = distance(seq1_);
+    diff_type len2 = distance(seq2_);
 
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
@@ -309,7 +308,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     const diff_type delta = L1-L2;
     const bool delta_even = delta%2 == 0;
 
-    size_type R = 10;
+    diff_type R = 10;
     std::vector<diff_type> V_data(2*(1 + 2*R));
     itrv_t Vf = V_data.begin()+R;
     itrv_t Vr = V_data.begin()+(3*R+1)-delta;
