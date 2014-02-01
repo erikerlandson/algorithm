@@ -418,7 +418,7 @@ void random_localized_deviations(vector<S>& seqdata, const int N, const int LEN,
     int sz = int(ceil((1 + sqrt(1+8*N))/2));
     int rsfx = std::min(maxsfx, std::max(2, LEN/10));
     seqdata.resize(sz);
-    for (int i = 0;  i < seqdata.size();  ++i) {
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         seqdata[i].resize(LEN + ((rand()%2) ? 0 : (rand()%rsfx)), 'x');
         for (int d = 0;  d < D;  ++d) {
             unsigned int b1 = d*R + (rand() % K);
