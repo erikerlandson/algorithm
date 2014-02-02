@@ -13,6 +13,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 [section:sections Sections]
 
 * [link the_boost_algorithm_library.Sequence.edit_distance.overview Overview]
+* [link the_boost_algorithm_library.Sequence.edit_distance.motivation Motivation]
 * [link the_boost_algorithm_library.Sequence.edit_distance.arguments Arguments]
 * [link the_boost_algorithm_library.Sequence.edit_distance.cost_functions Cost Functions]
 * [link the_boost_algorithm_library.Sequence.edit_distance.equality_relation Equality Relation]
@@ -52,6 +53,38 @@ d = edit_distance(my_vector, my_list | boost::adaptors::reversed);
 ``
 
 [endsect]
+
+
+[section:motivation Motivation]
+
+Measuring the distance between two sequences of objects, and/or obtaining the corresponding script of edit operations, plays a key role in many applications.  The following table lists some common applications of edit distance:
+
+[table:id Applications of edit distance
+[[Sequence][Sequence Elements][Application]]
+[
+    [Genome]
+    [Base pairs (A,C,G,T)]
+    [Identify regions of difference (mutations) between two genomes]
+]
+[
+    [Text File]
+    [File Lines]
+    [Display differences between files, generate a patch from one file to another]
+]
+[
+    [Database Fields]
+    [Characters]
+    [Find potential duplicate records in a database]
+]
+[
+    [Dictionary Words]
+    [Characters]
+    [Suggest similar dictionary words to a misspelled word for spell checking]
+]
+]
+
+[endsect]
+
 
 [section:arguments Arguments to edit_distance()]
 
