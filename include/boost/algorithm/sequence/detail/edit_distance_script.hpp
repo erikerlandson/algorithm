@@ -307,9 +307,9 @@ diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type
         max_cost_check.update(k, Vf, Vr, delta, L1, L2, D);
     }
 
-    diff_type r1b, r2b, r1e, r2e;
+    diff_type r1b=0, r2b=0, r1e=0, r2e=0;
 
-    diff_type k;
+    diff_type k=0;
     remainder::kind kind;
     max_cost_check.get(k, kind);
     switch (kind) {
