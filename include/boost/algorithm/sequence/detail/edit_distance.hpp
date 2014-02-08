@@ -189,22 +189,28 @@ std::string dump(const itr1_t& S1, const diff_type& len1) const {
 }
 
 template <typename Vec, typename Itr> 
-inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& D, const diff_type& delta) const {
+inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& P, const diff_type& delta, const diff_type& L) const {
     diff_type Rp = R + (R>>1);
-    V_data.resize(2 + 4*Rp);
+    V_data.resize(2*(1 + delta + 2*Rp));
     Vf = V_data.begin() + R;
-    Vr = V_data.begin() + (3*R+1) - delta;
+    Vr = V_data.begin() + (1 + delta + 2*R) + R;
 
-    Itr Vp = V_data.begin() + (3*Rp+1) - delta;
-    for (diff_type j=D+delta;  j >= -D+delta;  --j) Vp[j] = Vr[j];
+    Itr Vp = V_data.begin() + (1 + delta + 2*Rp) + Rp;
+    for (diff_type j=P+delta;  j >= -P;  --j) Vp[j] = Vr[j];
     Vr = Vp;
 
     Vp = V_data.begin() + Rp;
-    for (diff_type j=D;  j >= -D;  --j) Vp[j] = Vf[j];
+    for (diff_type j=P+delta;  j >= -P;  --j) Vp[j] = Vf[j];
     Vf = Vp;
 
     R = Rp;
+
+    for (diff_type j=1;  j<=(R-P);  ++j) {
+        Vf[-P-j] = Vf[P+delta+j] = -1;
+        Vr[-P-j] = Vr[P+delta+j] = 1+L;
+    }
 }
+
 
 diff_type max_cost_fallback(max_cost_type& max_cost_check, const bool max_cost_exception, const Equal& equal,
                             const itr1_t& S1, const diff_type& L1, const itr2_t& S2, const diff_type& L2,
@@ -288,6 +294,10 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     diff_type len1 = distance(seq1_);
     diff_type len2 = distance(seq2_);
 
+    std::cout << std::endl;
+    std::cout << "seq1= " << dump(seq1, len1) << std::endl;
+    std::cout << "seq2= " << dump(seq2, len2) << std::endl;
+
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
     for (;  eqb < std::min(len1, len2);  ++eqb) if (!equal(seq1[eqb],seq2[eqb])) break;
@@ -305,55 +315,88 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     if (L1 <= 0) return L2;
     if (L2 <= 0) return L1;
 
-    const diff_type delta = L1-L2;
-    const bool delta_even = delta%2 == 0;
+    const diff_type delta = std::abs(L1-L2);
+        //const bool delta_even = delta%2 == 0;
 
-    diff_type R = 10;
-    std::vector<diff_type> V_data(2*(1 + 2*R));
-    itrv_t Vf = V_data.begin()+R;
-    itrv_t Vr = V_data.begin()+(3*R+1)-delta;
+    diff_type R = 5;
+    std::vector<diff_type> V_data(2*(1 + delta + 2*R));
+    itrv_t Vf = V_data.begin() + R;
+    itrv_t Vr = V_data.begin() + (1 + delta + 2*R) + R;
+    for (diff_type k = -R;  k <= delta+R;  ++k) {
+        Vf[k] = -1;
+        Vr[k] = (L2 >= L1) ? (1+L2) : (1+L1);
+    }
 
     max_cost_type max_cost_check(max_cost);
 
-    diff_type D = 0;
-    Vf[1] = 0;
-    Vr[-1+delta] = L1;
-    while (true) {
-        // advance forward-path diagonals:
-        for (diff_type k = -D;  k <= D;  k += 2) {
-            diff_type j1 = (k == -D  ||  (k != D  &&  Vf[k-1] < Vf[k+1]))  ?  Vf[k+1]  :  1+Vf[k-1];
-            diff_type j2 = j1-k;
-            if (!delta_even  &&  (k-delta) >= -(D-1)  &&  (k-delta) <= (D-1)) {
-                diff_type r1 = Vr[k];
-                diff_type r2 = Vr[k]-k;
-                if ((j1-j2) == (r1-r2)  &&  j1 >= r1) return 2*D-1;
+    if (L2 >= L1) {
+        diff_type P = 0;
+        while (true) {
+            std::cout << "   P= " << P << std::endl;
+
+            // advance forward-path diagonals:
+            for (diff_type k = -P;  k < delta;  ++k) {
+                diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
+                diff_type j1 = j2-k;
+                if (true  &&  (k > -P)) {
+                    diff_type r2 = Vr[k];
+                    diff_type r1 = r2-k;
+                    if ((j1-j2) == (r1-r2)  &&  j2 >= r2) return 4*P - 2 + delta;
+                }
+                while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+                Vf[k] = j2;
             }
-            while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
-            Vf[k] = j1;
-        }
-
-        // advance the reverse-path diagonals:
-        for (diff_type k = -D+delta;  k <= D+delta;  k += 2) {
-            diff_type j1 = (k == D+delta  ||  (k != -D+delta  &&  Vr[k-1] < Vr[k+1]))  ?  Vr[k-1]  :  Vr[k+1]-1;
-            diff_type j2 = j1-k;
-            if (delta_even  &&  k >= -D  &&  k <= D) {
-                diff_type f1 = Vf[k];
-                diff_type f2 = Vf[k]-k;
-                if ((j1-j2) == (f1-f2)  &&  f1 >= j1) return 2*D;
+            for (diff_type k = P+delta;  k >= delta;  --k) {
+                diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
+                diff_type j1 = j2-k;
+                if (true  &&  (k < (delta+P))) {
+                    diff_type r2 = Vr[k];
+                    diff_type r1 = r2-k;
+                    if ((j1-j2) == (r1-r2)  &&  j2 >= r2) return 4*P - 2 + delta;
+                }
+                while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+                Vf[k] = j2;
             }
-            while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
-            Vr[k] = j1;
-        }
 
-        if (max_cost_check((delta_even) ? (2*D+2) : (2*D+1))) {
-            return max_cost_fallback(max_cost_check, max_cost_exception, equal,
-                                     S1, L1, S2, L2,
-                                     Vf, Vr, delta, D);
-        }
+            // advance reverse-path diagonals:
+            for (diff_type k = -P;  k < delta;  ++k) {
+                diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
+                diff_type j1 = j2-k;
+                if (true) {
+                    diff_type f2 = Vf[k];
+                    diff_type f1 = f2-k;
+                    if ((j1-j2) == (f1-f2)  &&  f2 >= j2) return 4*P + delta;
+                }
+                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+                Vr[k] = j2;
+            }
+            for (diff_type k = P+delta;  k >= delta;  --k) {
+                diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
+                diff_type j1 = j2-k;
+                if (true) {
+                    diff_type f2 = Vf[k];
+                    diff_type f1 = f2-k;
+                    if ((j1-j2) == (f1-f2)  &&  f2 >= j2) return 4*P + delta;
+                }
+                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+                Vr[k] = j2;
+            }
 
-        // expand the working vector as needed
-        if (D >= R) expand(V_data, Vf, Vr, R, D, delta);
-        ++D;
+#if 0
+            if (max_cost_check((delta_even) ? (2*D+2) : (2*D+1))) {
+                return max_cost_fallback(max_cost_check, max_cost_exception, equal,
+                                         S1, L1, S2, L2,
+                                         Vf, Vr, delta, D);
+            }
+#endif
+
+            // expand the working vector as needed
+            if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, L2);
+            ++P;
+        }
+    } else {
+        // L1 > L2
+        return 0;
     }
 
     // control should not reach here
