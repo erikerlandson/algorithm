@@ -315,8 +315,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     if (L1 <= 0) return L2;
     if (L2 <= 0) return L1;
 
-    const diff_type delta = std::abs(L1-L2);
-        //const bool delta_even = delta%2 == 0;
+    const diff_type delta = (L2 >= L1) ? (L2-L1) : (L1-L2);
 
     diff_type R = 5;
     std::vector<diff_type> V_data(2*(1 + delta + 2*R));
@@ -338,22 +337,22 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             for (diff_type k = -P;  k < delta;  ++k) {
                 diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
                 diff_type j1 = j2-k;
-                if (true  &&  (k > -P)) {
-                    diff_type r2 = Vr[k];
-                    diff_type r1 = r2-k;
-                    if ((j1-j2) == (r1-r2)  &&  j2 >= r2) return 4*P - 2 + delta;
-                }
+
+                diff_type r2 = Vr[k];
+                diff_type r1 = r2-k;
+                if (j2 >= r2  &&  (j1-j2) == (r1-r2)) return 4*P - 2 + delta;
+
                 while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
                 Vf[k] = j2;
             }
             for (diff_type k = P+delta;  k >= delta;  --k) {
                 diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
                 diff_type j1 = j2-k;
-                if (true  &&  (k < (delta+P))) {
-                    diff_type r2 = Vr[k];
-                    diff_type r1 = r2-k;
-                    if ((j1-j2) == (r1-r2)  &&  j2 >= r2) return 4*P - 2 + delta;
-                }
+
+                diff_type r2 = Vr[k];
+                diff_type r1 = r2-k;
+                if (j2 >= r2  &&  (j1-j2) == (r1-r2)) return 4*P - 2 + delta;
+
                 while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
                 Vf[k] = j2;
             }
@@ -362,22 +361,22 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             for (diff_type k = -P;  k < delta;  ++k) {
                 diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
                 diff_type j1 = j2-k;
-                if (true) {
-                    diff_type f2 = Vf[k];
-                    diff_type f1 = f2-k;
-                    if ((j1-j2) == (f1-f2)  &&  f2 >= j2) return 4*P + delta;
-                }
+
+                diff_type f2 = Vf[k];
+                diff_type f1 = f2-k;
+                if (f2 >= j2  &&  (j1-j2) == (f1-f2)) return 4*P + delta;
+
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
                 Vr[k] = j2;
             }
             for (diff_type k = P+delta;  k >= delta;  --k) {
                 diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
                 diff_type j1 = j2-k;
-                if (true) {
-                    diff_type f2 = Vf[k];
-                    diff_type f1 = f2-k;
-                    if ((j1-j2) == (f1-f2)  &&  f2 >= j2) return 4*P + delta;
-                }
+
+                diff_type f2 = Vf[k];
+                diff_type f1 = f2-k;
+                if (f2 >= j2  &&  (j1-j2) == (f1-f2)) return 4*P + delta;
+
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
                 Vr[k] = j2;
             }
