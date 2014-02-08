@@ -17,6 +17,7 @@ http://www.boost.org/LICENSE_1_0.txt
 
 BOOST_AUTO_TEST_SUITE(edit_distance_suite)
 
+#if 0
 BOOST_AUTO_TEST_CASE(both_empty) {
     BOOST_CHECK_EQUAL(edit_distance("", ""), 0u);
 }
@@ -36,6 +37,7 @@ BOOST_AUTO_TEST_CASE(equal_nonempty) {
     BOOST_CHECK_EQUAL(edit_distance("ab", "ab"), 0u);
     BOOST_CHECK_EQUAL(edit_distance("abc", "abc"), 0u);
 }
+#endif
 
 BOOST_AUTO_TEST_CASE(interior_1) {
     BOOST_CHECK_EQUAL(edit_distance("a", "b"), 2u);
@@ -63,24 +65,70 @@ BOOST_AUTO_TEST_CASE(interior_2) {
     BOOST_CHECK_EQUAL(edit_distance("abc", "defghij"), 10u);
 }
 
+BOOST_AUTO_TEST_CASE(interior_2_switch) {
+    BOOST_CHECK_EQUAL(edit_distance("ab", "m"), 3u);
+    BOOST_CHECK_EQUAL(edit_distance("abc", "m"), 4u);
+    BOOST_CHECK_EQUAL(edit_distance("abcd", "m"), 5u);
+    BOOST_CHECK_EQUAL(edit_distance("abcde", "m"), 6u);
+
+    BOOST_CHECK_EQUAL(edit_distance("ab", "mn"), 4u);
+    BOOST_CHECK_EQUAL(edit_distance("abc", "mn"), 5u);
+    BOOST_CHECK_EQUAL(edit_distance("abcd", "mn"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("abcde", "mn"), 7u);
+
+    BOOST_CHECK_EQUAL(edit_distance("ab", "mno"), 5u);
+    BOOST_CHECK_EQUAL(edit_distance("abc", "mno"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("abcd", "mno"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("abcde", "mno"), 8u);
+}
+
 BOOST_AUTO_TEST_CASE(interior_3) {
-    BOOST_CHECK_EQUAL(edit_distance("axbyc", "dxeyf"), 6u);
-    BOOST_CHECK_EQUAL(edit_distance("axbyc", "dxeyfg"), 7u);
-    BOOST_CHECK_EQUAL(edit_distance("axbyc", "dxeyfgh"), 8u);
-    BOOST_CHECK_EQUAL(edit_distance("axbyc", "dxeyfghi"), 9u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyc", "mxnyo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyc", "mxnyop"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyc", "mxnyopq"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyc", "mxnyopqr"), 9u);
 
-    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "dxeyzf"), 6u);
-    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "dxeyzfg"), 7u);
-    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "dxeyzfgh"), 8u);
-    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "dxeyzfghi"), 9u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "mxnyzo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "mxnyzop"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "mxnyzopq"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "mxnyzopqr"), 9u);
 
-    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "dwxeyzf"), 6u);
-    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "dwxeyzfg"), 7u);
-    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "dwxeyzfgh"), 8u);
-    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "dwxeyzfghi"), 9u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "mwxnyzo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "mwxnyzop"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "mwxnyzopq"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "mwxnyzopqr"), 9u);
+}
+
+BOOST_AUTO_TEST_CASE(interior_3_switch) {
+    BOOST_CHECK_EQUAL(edit_distance("axbyc", "mxnyo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("axbycd", "mxnyo"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("axbycde", "mxnyo"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("axbycdef", "mxnyo"), 9u);
+
+    BOOST_CHECK_EQUAL(edit_distance("axbyzc", "mxnyzo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzcd", "mxnyzo"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzcde", "mxnyzo"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("axbyzcdef", "mxnyzo"), 9u);
+
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzc", "mwxnyzo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzcd", "mwxnyzo"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzcde", "mwxnyzo"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("awxbyzcdef", "mwxnyzo"), 9u);
+}
+
+
+BOOST_AUTO_TEST_CASE(interior_4) {
+    BOOST_CHECK_EQUAL(edit_distance("waaa1bbbx", "yaaabbbzzz"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("waaa12bbbx", "yaaabbbzzz"), 8u);
+}
+
+BOOST_AUTO_TEST_CASE(interior_4_switch) {
+    BOOST_CHECK_EQUAL(edit_distance("waaa1bbbxxx", "yaaabbbz"), 7u);
+    BOOST_CHECK_EQUAL(edit_distance("waaa12bbbxxx", "yaaabbbz"), 8u);
 }
 
 #if 0
+
 BOOST_AUTO_TEST_CASE(both_empty_sub) {
     BOOST_CHECK_EQUAL(edit_distance("", "", _substitution=true_type()), (unsigned)0);
 }
