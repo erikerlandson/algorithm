@@ -39,6 +39,14 @@ BOOST_AUTO_TEST_CASE(equal_nonempty) {
 }
 #endif
 
+BOOST_AUTO_TEST_CASE(interior_0) {
+    BOOST_CHECK_EQUAL(edit_distance("axc", "mxn"), 4u);
+    BOOST_CHECK_EQUAL(edit_distance("abxc", "mnxo"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("axbc", "mxno"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("abxc", "mxno"), 6u);
+    BOOST_CHECK_EQUAL(edit_distance("axbc", "mnxo"), 6u);
+}
+
 BOOST_AUTO_TEST_CASE(interior_1) {
     BOOST_CHECK_EQUAL(edit_distance("a", "b"), 2u);
     BOOST_CHECK_EQUAL(edit_distance("ab", "cd"), 4u);
@@ -120,14 +128,15 @@ BOOST_AUTO_TEST_CASE(interior_3_switch) {
 BOOST_AUTO_TEST_CASE(interior_4) {
     BOOST_CHECK_EQUAL(edit_distance("waaa1bbbx", "yaaabbbzzz"), 7u);
     BOOST_CHECK_EQUAL(edit_distance("waaa12bbbx", "yaaabbbzzz"), 8u);
+    BOOST_CHECK_EQUAL(edit_distance("waaa123bbbx", "yaaabbbzzzz"), 10u);
 }
 
+#if 0
 BOOST_AUTO_TEST_CASE(interior_4_switch) {
     BOOST_CHECK_EQUAL(edit_distance("waaa1bbbxxx", "yaaabbbz"), 7u);
     BOOST_CHECK_EQUAL(edit_distance("waaa12bbbxxx", "yaaabbbz"), 8u);
 }
 
-#if 0
 
 BOOST_AUTO_TEST_CASE(both_empty_sub) {
     BOOST_CHECK_EQUAL(edit_distance("", "", _substitution=true_type()), (unsigned)0);

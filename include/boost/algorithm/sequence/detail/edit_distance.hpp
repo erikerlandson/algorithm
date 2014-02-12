@@ -188,6 +188,14 @@ std::string dump(const itr1_t& S1, const diff_type& len1) const {
     return r;
 }
 
+void dump(const string& lab, diff_type k, const itr1_t& S1, const diff_type& len1, const itr2_t& S2, const diff_type& len2, diff_type j1, diff_type j2, diff_type t1, diff_type t2) const {
+    if (len2 >= len1) {
+        std::cout << "    " << make_tuple(lab, k, j1, j2, S1[j1], S2[j2], t1, t2, (t1 < len2)?S1[t1]:'_', (t2 < len2)?S2[t2]:'_') << std::endl;
+    } else {
+        std::cout << "    " << make_tuple(lab, k, j1, j2, S1[j2], S2[j1], t1, t2, (t2 < len2)?S1[t2]:'_', (t1 < len2)?S2[t1]:'_') << std::endl;
+    }
+}
+
 template <typename Vec, typename Itr> 
 inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& P, const diff_type& delta, const diff_type& L) const {
     diff_type Rp = R + (R>>1);
@@ -321,13 +329,13 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     const diff_type delta = (L2 >= L1) ? (L2-L1) : (L1-L2);
     BOOST_ASSERT(delta >= 0);
 
-    diff_type R = 5;
+    diff_type R = 10;
     std::vector<diff_type> V_data(2*(1 + delta + 2*R));
     itrv_t Vf = V_data.begin() + R;
     itrv_t Vr = V_data.begin() + (1 + delta + 2*R) + R;
     for (diff_type k = -R;  k <= delta+R;  ++k) {
         Vf[k] = -1;
-        Vr[k] = std::max(L1, L2);
+        Vr[k] = 1+std::max(L1, L2);
     }
 
     max_cost_type max_cost_check(max_cost);
@@ -335,103 +343,107 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     diff_type P = 0;
     while (true) {
         std::cout << make_tuple("P=",P) << std::endl;
-        std::cout << "    Vf=";
-        for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vf[j]);
-        std::cout << std::endl;
+
         std::cout << "    Vr=";
-        for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vr[j]);
+        for (int j = -P+1;  j<=delta+P-1;  ++j) std::cout << make_tuple(j,Vr[j]-j,Vr[j]);
         std::cout << std::endl;
 
         // advance forward-path diagonals:
         for (diff_type k = -P;  k < delta;  ++k) {
-            std::cout << "\n    Vf=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vf[j]);
-            std::cout << std::endl;
             diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
             diff_type j1 = j2-k;
 
             diff_type r2 = Vr[k];
             diff_type r1 = r2-k;
-            std::cout << "    " << make_tuple("F1", k, j1, j2, r1, r2) << std::endl;
-            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) return 4*P + delta;
+            dump("F1", k, S1, L1, S2, L2, j1, j2, r1, r2);
+//            if (j1 == r1  &&  j2 == r2) {
+            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
+                std::cout << "    forward: " << 2*P + (j2-j1) << std::endl;
+                std::cout << "    reverse: " << 2*(P-1) + ((L2 >= L1) ? (L2-1-r2)-(L1-1-r1) : (L2-1-r1)-(L1-1-r2)) << std::endl;
+                return 4*P - 2 + delta;
+            }
 
             if (L2 >= L1) {
                 while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
             } else {
                 while (j1 < L2  &&  j2 < L1  &&  equal(S1[j2], S2[j1])) { ++j1;  ++j2; }
             }
+            dump("->", k, S1, L1, S2, L2, j1, j2, r1-1, r2-1);
+
             Vf[k] = j2;
-            std::cout << "    Vf=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vf[j]);
-            std::cout << std::endl;
         }
         for (diff_type k = P+delta;  k >= delta;  --k) {
-            std::cout << "\n    Vf=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vf[j]);
-            std::cout << std::endl;
             diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
             diff_type j1 = j2-k;
 
             diff_type r2 = Vr[k];
             diff_type r1 = r2-k;
-            std::cout << "    " << make_tuple("F2", k, j1, j2, r1, r2) << std::endl;
-            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) return 4*P + delta;
+            dump("F2", k, S1, L1, S2, L2, j1, j2, r1, r2);
+//            if (j1 == r1  &&  j2 == r2) {
+            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
+                std::cout << "    forward: " << 2*P + (j2-j1) << std::endl;
+                std::cout << "    reverse: " << 2*(P-1) + ((L2 >= L1) ? (L2-1-r2)-(L1-1-r1) : (L2-1-r1)-(L1-1-r2)) << std::endl;
+                return 4*P - 2 + delta;
+            }
 
             if (L2 >= L1) {
                 while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
             } else {
                 while (j1 < L2  &&  j2 < L1  &&  equal(S1[j2], S2[j1])) { ++j1;  ++j2; }
             }
+            dump("->", k, S1, L1, S2, L2, j1, j2, r1-1, r2-1);
+
             Vf[k] = j2;
-            std::cout << "    Vf=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vf[j]);
-            std::cout << std::endl;
         }
 
         // advance reverse-path diagonals:
+        std::cout << "    Vf=";
+        for (int j = -P;  j<=delta+P;  ++j) std::cout << make_tuple(j,Vf[j]-j,Vf[j]);
+        std::cout << std::endl;
         for (diff_type k = delta+P;  k > 0;  --k) {
-            std::cout << "\n    Vr=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vr[j]);
-            std::cout << std::endl;
             diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
             diff_type j1 = j2-k;
 
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
-            std::cout << "    " << make_tuple("R1", k, j1, j2, f1, f2) << std::endl;
-            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) return 4*P + 2 + delta;
+            dump("R1", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+//            if (j1 == f1  &&  j2 == f2) {
+            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
+                std::cout << "    forward: " << 2*P + (f2-f1) << std::endl;
+                std::cout << "    reverse: " << 2*P + ((L2 >= L1) ? (L2-1-j2)-(L1-1-j1) : (L2-1-j1)-(L1-1-j2)) << std::endl;
+                return 4*P + delta;
+            }
 
             if (L2 >= L1) {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
             } else {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j2-1], S2[j1-1])) { --j1;  --j2; }
             }
+            dump("->", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+
             Vr[k] = j2;
-            std::cout << "    Vr=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vr[j]);
-            std::cout << std::endl;
         }
         for (diff_type k = -P;  k <= 0;  ++k) {
-            std::cout << "\n    Vr=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vr[j]);
-            std::cout << std::endl;
             diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
             diff_type j1 = j2-k;
 
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
-            std::cout << "    " << make_tuple("R2", k, j1, j2, f1, f2) << std::endl;
-            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) return 4*P + 2 + delta;
-
+            dump("R2", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+//            if (j1 == f1  &&  j2 == f2) {
+            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
+                std::cout << "    forward: " << 2*P + (f2-f1) << std::endl;
+                std::cout << "    reverse: " << 2*P + ((L2 >= L1) ? (L2-1-j2)-(L1-1-j1) : (L2-1-j1)-(L1-1-j2)) << std::endl;
+                return 4*P + delta;
+            }
             if (L2 >= L1) {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
             } else {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j2-1], S2[j1-1])) { --j1;  --j2; }
             }
+            dump("->", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+
             Vr[k] = j2;
-            std::cout << "    Vr=";
-            for (int j = -R;  j<=delta+R;  ++j) std::cout << make_tuple(j,Vr[j]);
-            std::cout << std::endl;
         }
 
 #if 0
@@ -443,7 +455,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
 #endif
 
         // expand the working vector as needed
-        if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, std::max(L1, L2));
+        if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, 1+std::max(L1, L2));
         ++P;
     }
 
