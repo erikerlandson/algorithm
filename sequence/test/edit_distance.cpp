@@ -131,13 +131,12 @@ BOOST_AUTO_TEST_CASE(interior_4) {
     BOOST_CHECK_EQUAL(edit_distance("waaa123bbbx", "yaaabbbzzzz"), 10u);
 }
 
-#if 0
 BOOST_AUTO_TEST_CASE(interior_4_switch) {
     BOOST_CHECK_EQUAL(edit_distance("waaa1bbbxxx", "yaaabbbz"), 7u);
     BOOST_CHECK_EQUAL(edit_distance("waaa12bbbxxx", "yaaabbbz"), 8u);
 }
 
-
+#if 0
 BOOST_AUTO_TEST_CASE(both_empty_sub) {
     BOOST_CHECK_EQUAL(edit_distance("", "", _substitution=true_type()), (unsigned)0);
 }

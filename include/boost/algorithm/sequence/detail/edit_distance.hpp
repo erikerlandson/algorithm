@@ -356,11 +356,12 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type r2 = Vr[k];
             diff_type r1 = r2-k;
             dump("F1", k, S1, L1, S2, L2, j1, j2, r1, r2);
-//            if (j1 == r1  &&  j2 == r2) {
-            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
-                std::cout << "    forward: " << 2*P + (j2-j1) << std::endl;
-                std::cout << "    reverse: " << 2*(P-1) + ((L2 >= L1) ? (L2-1-r2)-(L1-1-r1) : (L2-1-r1)-(L1-1-r2)) << std::endl;
-                return 4*P - 2 + delta;
+            if (j1 == r1  &&  j2 == r2) {
+//            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
+                diff_type vf = (k>delta) ? (P + delta - k) : P;
+                diff_type vr = (k<0) ? (P-1 + k) : P-1;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
+                return 2*(vf+vr)+delta;
             }
 
             if (L2 >= L1) {
@@ -379,11 +380,12 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type r2 = Vr[k];
             diff_type r1 = r2-k;
             dump("F2", k, S1, L1, S2, L2, j1, j2, r1, r2);
-//            if (j1 == r1  &&  j2 == r2) {
-            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
-                std::cout << "    forward: " << 2*P + (j2-j1) << std::endl;
-                std::cout << "    reverse: " << 2*(P-1) + ((L2 >= L1) ? (L2-1-r2)-(L1-1-r1) : (L2-1-r1)-(L1-1-r2)) << std::endl;
-                return 4*P - 2 + delta;
+            if (j1 == r1  &&  j2 == r2) {
+//            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
+                diff_type vf = (k>delta) ? (P + delta - k) : P;
+                diff_type vr = (k<0) ? (P-1 + k) : P-1;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
+                return 2*(vf+vr)+delta;
             }
 
             if (L2 >= L1) {
@@ -407,11 +409,12 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
             dump("R1", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
-//            if (j1 == f1  &&  j2 == f2) {
-            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
-                std::cout << "    forward: " << 2*P + (f2-f1) << std::endl;
-                std::cout << "    reverse: " << 2*P + ((L2 >= L1) ? (L2-1-j2)-(L1-1-j1) : (L2-1-j1)-(L1-1-j2)) << std::endl;
-                return 4*P + delta;
+            if (j1 == f1  &&  j2 == f2) {
+//            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
+                diff_type vf = (k>delta) ? (P + delta - k) : P;
+                diff_type vr = (k<0) ? (P + k) : P;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
+                return 2*(vf+vr)+delta;
             }
 
             if (L2 >= L1) {
@@ -430,11 +433,12 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
             dump("R2", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
-//            if (j1 == f1  &&  j2 == f2) {
-            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
-                std::cout << "    forward: " << 2*P + (f2-f1) << std::endl;
-                std::cout << "    reverse: " << 2*P + ((L2 >= L1) ? (L2-1-j2)-(L1-1-j1) : (L2-1-j1)-(L1-1-j2)) << std::endl;
-                return 4*P + delta;
+            if (j1 == f1  &&  j2 == f2) {
+//            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
+                diff_type vf = (k>delta) ? (P + delta - k) : P;
+                diff_type vr = (k<0) ? (P + k) : P;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
+                return 2*(vf+vr)+delta;
             }
             if (L2 >= L1) {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
