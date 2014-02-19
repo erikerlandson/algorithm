@@ -190,9 +190,9 @@ std::string dump(const itr1_t& S1, const diff_type& len1) const {
 
 void dump(const string& lab, diff_type k, const itr1_t& S1, const diff_type& len1, const itr2_t& S2, const diff_type& len2, diff_type j1, diff_type j2, diff_type t1, diff_type t2) const {
     if (len2 >= len1) {
-        std::cout << "    " << make_tuple(lab, k, j1, j2, S1[j1], S2[j2], t1, t2, (t1 < len2)?S1[t1]:'_', (t2 < len2)?S2[t2]:'_') << std::endl;
+        std::cout << "    " << make_tuple(lab, k, j1, j2, (j1<len1)?S1[j1]:'_', (j2<len2)?S2[j2]:'_', t1, t2, (t1 < len1)?S1[t1]:'_', (t2 < len2)?S2[t2]:'_') << std::endl;
     } else {
-        std::cout << "    " << make_tuple(lab, k, j1, j2, S1[j2], S2[j1], t1, t2, (t2 < len2)?S1[t2]:'_', (t1 < len2)?S2[t1]:'_') << std::endl;
+        std::cout << "    " << make_tuple(lab, k, j1, j2, (j2<len1)?S1[j2]:'_', (j1<len2)?S2[j1]:'_', t1, t2, (t2 < len1)?S1[t2]:'_', (t1 < len2)?S2[t1]:'_') << std::endl;
     }
 }
 
@@ -369,7 +369,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             } else {
                 while (j1 < L2  &&  j2 < L1  &&  equal(S1[j2], S2[j1])) { ++j1;  ++j2; }
             }
-            dump("->", k, S1, L1, S2, L2, j1, j2, r1-1, r2-1);
+            dump("->", k, S1, L1, S2, L2, j1, j2, r1, r2);
 
             Vf[k] = j2;
         }
@@ -393,7 +393,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             } else {
                 while (j1 < L2  &&  j2 < L1  &&  equal(S1[j2], S2[j1])) { ++j1;  ++j2; }
             }
-            dump("->", k, S1, L1, S2, L2, j1, j2, r1-1, r2-1);
+            dump("->", k, S1, L1, S2, L2, j1, j2, r1, r2);
 
             Vf[k] = j2;
         }
@@ -408,7 +408,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
 
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
-            dump("R1", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+            dump("R1", k, S1, L1, S2, L2, j1, j2, f1, f2);
             if (j1 == f1  &&  j2 == f2) {
 //            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
                 diff_type vf = (k>delta) ? (P + delta - k) : P;
@@ -422,7 +422,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             } else {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j2-1], S2[j1-1])) { --j1;  --j2; }
             }
-            dump("->", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+            dump("->", k, S1, L1, S2, L2, j1, j2, f1, f2);
 
             Vr[k] = j2;
         }
@@ -432,7 +432,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
 
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
-            dump("R2", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+            dump("R2", k, S1, L1, S2, L2, j1, j2, f1, f2);
             if (j1 == f1  &&  j2 == f2) {
 //            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
                 diff_type vf = (k>delta) ? (P + delta - k) : P;
@@ -445,7 +445,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             } else {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j2-1], S2[j1-1])) { --j1;  --j2; }
             }
-            dump("->", k, S1, L1, S2, L2, j1-1, j2-1, f1, f2);
+            dump("->", k, S1, L1, S2, L2, j1, j2, f1, f2);
 
             Vr[k] = j2;
         }
