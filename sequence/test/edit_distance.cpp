@@ -144,6 +144,12 @@ BOOST_AUTO_TEST_CASE(interior_5) {
     BOOST_CHECK_EQUAL(edit_distance("xxabc", "mnopxx"), 7u);
 }
 
+BOOST_AUTO_TEST_CASE(interior_6) {
+    BOOST_CHECK_EQUAL(edit_distance("mxxxxn", "axxxbxx"), 5u);
+    BOOST_CHECK_EQUAL(edit_distance("axxxbxx", "mxxxxn"), 5u);
+}
+
+
 #if 0
 BOOST_AUTO_TEST_CASE(both_empty_sub) {
     BOOST_CHECK_EQUAL(edit_distance("", "", _substitution=true_type()), (unsigned)0);
@@ -411,15 +417,15 @@ BOOST_AUTO_TEST_CASE(myers_sssp_crosscheck_1) {
     double tt = time(0) - t0;
     BOOST_TEST_MESSAGE("time= " << tt << " sec   n= " << n << "   mean-time= " << tt/double(n) << "\n");
 }
+
+
 #endif
 
-
-#if 0
 BOOST_AUTO_TEST_CASE(myers_sssp_crosscheck_2) {
     srand(time(0));
     vector<std::string> seqdata;
-    const int N = 100;
-    random_localized_deviations(seqdata, N, 10, 1, 5);
+    const int N = 1000;
+    random_localized_deviations(seqdata, N, 1000, 5, 10);
     int n = 0;
     double t0 = time(0);
     for (unsigned int i = 0;  i < seqdata.size();  ++i) {
@@ -436,6 +442,8 @@ BOOST_AUTO_TEST_CASE(myers_sssp_crosscheck_2) {
     BOOST_TEST_MESSAGE("time= " << tt << " sec   n= " << n << "   mean-time= " << tt/double(n) << "\n");
 }
 
+
+#if 0
 BOOST_AUTO_TEST_CASE(timing_1) {
     srand(time(0));
     vector<std::string> seqdata;

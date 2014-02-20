@@ -302,9 +302,9 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     diff_type len1 = distance(seq1_);
     diff_type len2 = distance(seq2_);
 
-    std::cout << std::endl;
-    std::cout << "seq1= " << dump(seq1, len1) << std::endl;
-    std::cout << "seq2= " << dump(seq2, len2) << std::endl;
+//    std::cout << std::endl;
+//    std::cout << "seq1= " << dump(seq1, len1) << std::endl;
+//    std::cout << "seq2= " << dump(seq2, len2) << std::endl;
 
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
@@ -329,7 +329,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     const diff_type delta = (L2 >= L1) ? (L2-L1) : (L1-L2);
     BOOST_ASSERT(delta >= 0);
 
-    diff_type R = 10;
+    diff_type R = 1000;
     std::vector<diff_type> V_data(2*(1 + delta + 2*R));
     itrv_t Vf = V_data.begin() + R;
     itrv_t Vr = V_data.begin() + (1 + delta + 2*R) + R;
@@ -340,13 +340,22 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
 
     max_cost_type max_cost_check(max_cost);
 
+    // initialize this with the maximum possible distance:
+    diff_type Dbest = L1+L2;
+
     diff_type P = 0;
     while (true) {
-        std::cout << make_tuple("P=",P) << std::endl;
+        // the minimum possible distance for the current P value
+        diff_type Dmin = 2*(P-1) + delta;
 
-        std::cout << "    Vr=";
-        for (int j = -P+1;  j<=delta+P-1;  ++j) std::cout << make_tuple(j,Vr[j]-j,Vr[j]);
-        std::cout << std::endl;
+        std::cout << make_tuple("P=",P, "   Dmin=", Dmin, "   Dbest=", Dbest) << std::endl;
+
+        // if the minimum possible distance is >= our best-known distance, we can halt
+        if (Dmin >= Dbest) return Dbest;
+
+//        std::cout << "    Vr=";
+//        for (int j = -P+1;  j<=delta+P-1;  ++j) std::cout << make_tuple(j,Vr[j]-j,Vr[j]);
+//        std::cout << std::endl;
 
         // advance forward-path diagonals:
         for (diff_type k = -P;  k < delta;  ++k) {
@@ -356,12 +365,14 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type r2 = Vr[k];
             diff_type r1 = r2-k;
             dump("F1", k, S1, L1, S2, L2, j1, j2, r1, r2);
-            if (j1 == r1  &&  j2 == r2) {
+            if (j2 >= r2) {
+//            if (j1 == r1  &&  j2 == r2) {
 //            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
                 diff_type vf = (k>delta) ? (P + delta - k) : P;
                 diff_type vr = (k<0) ? (P-1 + k) : P-1;
-                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
-                return 2*(vf+vr)+delta;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k), 2*(vf+vr)+delta) << std::endl;
+//                return 2*(vf+vr)+delta;
+                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
             }
 
             if (L2 >= L1) {
@@ -380,12 +391,14 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type r2 = Vr[k];
             diff_type r1 = r2-k;
             dump("F2", k, S1, L1, S2, L2, j1, j2, r1, r2);
-            if (j1 == r1  &&  j2 == r2) {
+            if (j2 >= r2) {
+//            if (j1 == r1  &&  j2 == r2) {
 //            if (j2 >= r2  &&  (j1-j2) == (r1-r2)) {
                 diff_type vf = (k>delta) ? (P + delta - k) : P;
                 diff_type vr = (k<0) ? (P-1 + k) : P-1;
-                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
-                return 2*(vf+vr)+delta;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k), 2*(vf+vr)+delta) << std::endl;
+//                return 2*(vf+vr)+delta;
+                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
             }
 
             if (L2 >= L1) {
@@ -399,9 +412,9 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         }
 
         // advance reverse-path diagonals:
-        std::cout << "    Vf=";
-        for (int j = -P;  j<=delta+P;  ++j) std::cout << make_tuple(j,Vf[j]-j,Vf[j]);
-        std::cout << std::endl;
+//        std::cout << "    Vf=";
+//        for (int j = -P;  j<=delta+P;  ++j) std::cout << make_tuple(j,Vf[j]-j,Vf[j]);
+//        std::cout << std::endl;
         for (diff_type k = delta+P;  k > 0;  --k) {
             diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
             diff_type j1 = j2-k;
@@ -409,12 +422,14 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
             dump("R1", k, S1, L1, S2, L2, j1, j2, f1, f2);
-            if (j1 == f1  &&  j2 == f2) {
+            if (j2 <= f2) {
+//            if (j1 == f1  &&  j2 == f2) {
 //            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
                 diff_type vf = (k>delta) ? (P + delta - k) : P;
                 diff_type vr = (k<0) ? (P + k) : P;
-                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
-                return 2*(vf+vr)+delta;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k), 2*(vf+vr)+delta) << std::endl;
+//                return 2*(vf+vr)+delta;
+                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
             }
 
             if (L2 >= L1) {
@@ -433,12 +448,14 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type f2 = Vf[k];
             diff_type f1 = f2-k;
             dump("R2", k, S1, L1, S2, L2, j1, j2, f1, f2);
-            if (j1 == f1  &&  j2 == f2) {
+            if (j2 <= f2) {
+//            if (j1 == f1  &&  j2 == f2) {
 //            if (f2 >= j2  &&  (j1-j2) == (f1-f2)) {
                 diff_type vf = (k>delta) ? (P + delta - k) : P;
                 diff_type vr = (k<0) ? (P + k) : P;
-                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k)) << std::endl;
-                return 2*(vf+vr)+delta;
+                std::cout << "    MID: " << make_tuple(k, vf, vr, 2*vf + k, 2*vr+(delta-k), 2*(vf+vr)+delta) << std::endl;
+//                return 2*(vf+vr)+delta;
+                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
             }
             if (L2 >= L1) {
                 while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
