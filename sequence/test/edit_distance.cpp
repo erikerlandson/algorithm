@@ -311,6 +311,26 @@ BOOST_AUTO_TEST_CASE(timing_1) {
     srand(time(0));
     vector<std::string> seqdata;
     const int N = 100;
+    random_localized_deviations(seqdata, N, 1000000, 5, 1000, 100);
+    int n = 0;
+    double t0 = time(0);
+    for (unsigned int i = 0;  i < seqdata.size();  ++i) {
+        if (n >= N) break;
+        for (unsigned int j = 0;  j < i;  ++j) {
+            unsigned int d = edit_distance(seqdata[i], seqdata[j]);
+            BOOST_CHECK(d <= seqdata[i].size() + seqdata[j].size());
+            if (++n >= N) break;
+        }
+    }
+    double tt = time(0) - t0;
+    BOOST_TEST_MESSAGE("time= " << tt << " sec   n= " << n << "   mean-time= " << tt/double(n) << "\n" );
+}
+
+
+BOOST_AUTO_TEST_CASE(timing_1_sub) {
+    srand(time(0));
+    vector<std::string> seqdata;
+    const int N = 100;
     random_localized_deviations(seqdata, N, 100000, 5, 20, 10);
     int n = 0;
     double t0 = time(0);
@@ -327,7 +347,7 @@ BOOST_AUTO_TEST_CASE(timing_1) {
 }
 
 
-BOOST_AUTO_TEST_CASE(timing_2) {
+BOOST_AUTO_TEST_CASE(timing_2_sub) {
     srand(time(0));
     vector<std::string> seqdata;
     const int N = 100000;
@@ -347,7 +367,7 @@ BOOST_AUTO_TEST_CASE(timing_2) {
 }
 
 
-BOOST_AUTO_TEST_CASE(timing_3) {
+BOOST_AUTO_TEST_CASE(timing_3_sub) {
     srand(time(0));
     vector<std::string> seqdata;
     const int N = 1000000;
