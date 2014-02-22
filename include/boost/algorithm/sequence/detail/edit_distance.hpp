@@ -350,7 +350,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         // if the minimum possible distance is >= our best-known distance, we can halt
         if (Dmin >= Dbest) return Dbest;
 
-        diff_type bound = std::min(delta, ((Dbest-delta)/2)-(2*(P-1)));
+        diff_type bound = std::min(delta, ((Dbest-delta-1)/2)-(2*P)+1);
 
         // advance forward diagonals
         for (diff_type ku = -P, kd = P+delta;  ku <= bound;  ++ku) {
@@ -394,7 +394,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             --kd;
         }
 
-        bound = std::max(diff_type(0), ((delta-Dbest)/2)+delta+(2*P));
+        bound = std::max(diff_type(0), ((1+delta-Dbest)/2)+delta+(2*P));
 
         // advance reverse-path diagonals:
         for (diff_type kd=P+delta, ku=-P;  kd >= bound;  --kd) {
