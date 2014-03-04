@@ -360,7 +360,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             if (j2 >= Vr[ku]) {
                 diff_type vf = (ku>delta) ? (P + delta - ku) : P;
                 diff_type vr = (ku<0) ? (P-1 + ku) : P-1;
-                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
+                Dbest = 2*(vf+vr)+delta;
                 break;
             }
 
@@ -380,7 +380,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             if (j2 >= Vr[kd]) {
                 diff_type vf = (kd>delta) ? (P + delta - kd) : P;
                 diff_type vr = (kd<0) ? (P-1 + kd) : P-1;
-                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
+                Dbest = 2*(vf+vr)+delta;
                 break;
             }
 
@@ -404,7 +404,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             if (j2 <= Vf[kd]) {
                 diff_type vf = (kd>delta) ? (P + delta - kd) : P;
                 diff_type vr = (kd<0) ? (P + kd) : P;
-                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
+                Dbest = 2*(vf+vr)+delta;
                 break;
             }
 
@@ -424,7 +424,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             if (j2 <= Vf[ku]) {
                 diff_type vf = (ku>delta) ? (P + delta - ku) : P;
                 diff_type vr = (ku<0) ? (P + ku) : P;
-                Dbest = std::min(Dbest, 2*(vf+vr)+delta);
+                Dbest = 2*(vf+vr)+delta;
                 break;
             }
 
