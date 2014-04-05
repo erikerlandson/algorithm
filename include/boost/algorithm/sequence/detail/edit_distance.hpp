@@ -314,19 +314,31 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     eqe = len1-1-eqe;
 
     // sub-strings with equal suffix and/or prefix stripped
-    const itr1_t S1 = seq1 + eqb;
-    const diff_type L1 = len1-(eqb+eqe);
-    const itr2_t S2 = seq2 + eqb;
-    const diff_type L2 = len2-(eqb+eqe);
+    diff_type l1 = len1-(eqb+eqe);
+    diff_type l2 = len2-(eqb+eqe);
 
     // either or both strings are empty:
-    if (L1 <= 0) return L2;
-    if (L2 <= 0) return L1;
+    if (l1 <= 0) return l2;
+    if (l2 <= 0) return l1;
+
+    diff_type L1, L2;
+    itr1_t S1, S2;
+    if (l2 >= l1) {
+        S1 = seq1 + eqb;
+        L1 = l1;
+        S2 = seq2 + eqb;
+        L2 = l2;
+    } else {
+        S1 = seq2 + eqb;
+        L1 = l2;
+        S2 = seq1 + eqb;
+        L2 = l1;
+    }
 
 //    std::cout << "S1= " << dump(S1, L1) << std::endl;
 //    std::cout << "S2= " << dump(S2, L2) << std::endl;
 
-    const diff_type delta = (L2 >= L1) ? (L2-L1) : (L1-L2);
+    const diff_type delta = L2-L1;
 
     diff_type R = 5;
     std::vector<diff_type> V_data(2*(1 + delta + 2*R));
@@ -334,7 +346,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     itrv_t Vr = V_data.begin() + (1 + delta + 2*R) + R;
     for (diff_type k = -R;  k <= delta+R;  ++k) {
         Vf[k] = -1;
-        Vr[k] = 1+std::max(L1, L2);
+        Vr[k] = 1+L2;
     }
 
     max_cost_type max_cost_check(max_cost);
@@ -364,11 +376,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
                 break;
             }
 
-            if (L2 >= L1) {
-                while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
-            } else {
-                while (j1 < L2  &&  j2 < L1  &&  equal(S1[j2], S2[j1])) { ++j1;  ++j2; }
-            }
+            while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
 
             Vf[ku] = j2;
 
@@ -384,11 +392,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
                 break;
             }
 
-            if (L2 >= L1) {
-                while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
-            } else {
-                while (j1 < L2  &&  j2 < L1  &&  equal(S1[j2], S2[j1])) { ++j1;  ++j2; }
-            }
+            while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
 
             Vf[kd] = j2;
             --kd;
@@ -408,11 +412,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
                 break;
             }
 
-            if (L2 >= L1) {
-                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
-            } else {
-                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j2-1], S2[j1-1])) { --j1;  --j2; }
-            }
+            while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
 
             Vr[kd] = j2;
 
@@ -428,11 +428,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
                 break;
             }
 
-            if (L2 >= L1) {
-                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
-            } else {
-                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j2-1], S2[j1-1])) { --j1;  --j2; }
-            }
+            while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
 
             Vr[ku] = j2;
             ++ku;
@@ -447,7 +443,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
 #endif
 
         // expand the working vector as needed
-        if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, 1+std::max(L1, L2));
+        if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, 1+L2);
         ++P;
     }
 
