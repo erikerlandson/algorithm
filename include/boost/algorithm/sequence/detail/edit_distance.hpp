@@ -323,10 +323,11 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         for (diff_type k = -D;  k <= D;  k += 2) {
             diff_type j1 = (k == -D  ||  (k != D  &&  Vf[k-1] < Vf[k+1]))  ?  Vf[k+1]  :  1+Vf[k-1];
             diff_type j2 = j1-k;
-            if (!delta_even  &&  (k-delta) >= -(D-1)  &&  (k-delta) <= (D-1)) {
-                diff_type r1 = Vr[k];
-                diff_type r2 = Vr[k]-k;
-                if ((j1-j2) == (r1-r2)  &&  j1 >= r1) return 2*D-1;
+            if (!delta_even  &&  (k-delta) >= -(D-1)  &&  (k-delta) <= (D-1)  &&  (j1 >= Vr[k])) {
+//                diff_type r1 = Vr[k];
+//                diff_type r2 = Vr[k]-k;
+//                if (j1 >= r1  &&  (j1-j2) == (r1-r2)) return 2*D-1;
+                return 2*D-1;
             }
             while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
             Vf[k] = j1;
@@ -336,10 +337,11 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         for (diff_type k = -D+delta;  k <= D+delta;  k += 2) {
             diff_type j1 = (k == D+delta  ||  (k != -D+delta  &&  Vr[k-1] < Vr[k+1]))  ?  Vr[k-1]  :  Vr[k+1]-1;
             diff_type j2 = j1-k;
-            if (delta_even  &&  k >= -D  &&  k <= D) {
-                diff_type f1 = Vf[k];
-                diff_type f2 = Vf[k]-k;
-                if ((j1-j2) == (f1-f2)  &&  f1 >= j1) return 2*D;
+            if (delta_even  &&  k >= -D  &&  k <= D  &&  (Vf[k] >= j1)) {
+//                diff_type f1 = Vf[k];
+//                diff_type f2 = Vf[k]-k;
+//                if (f1 >= j1  &&  (j1-j2) == (f1-f2)) return 2*D;
+                return 2*D;
             }
             while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
             Vr[k] = j1;
