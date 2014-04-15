@@ -369,7 +369,9 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type j2 = std::max(1+Vf[ku-1], Vf[ku+1]);
             diff_type j1 = j2-ku;
 
-            if (j2 >= Vr[ku]) {
+            if (j2 >= Vr[ku]  && !(ku == 0   &&   (j2 == 0  ||  j2 == L2)) ) {
+                BOOST_ASSERT(!((j1 == 0  &&  j2 == 0) || (j1 == L1  &&  j2 == L2)));
+                BOOST_ASSERT(!((j1 <= 0  &&  j2 <= 0) || (j1 >= L1  &&  j2 >= L2)));
                 diff_type vf = (ku>delta) ? (P + delta - ku) : P;
                 diff_type vr = (ku<0) ? (P-1 + ku) : P-1;
                 Dbest = 2*(vf+vr)+delta;
@@ -386,6 +388,8 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             j1 = j2-kd;
 
             if (j2 >= Vr[kd]) {
+                BOOST_ASSERT(!((j1 == 0  &&  j2 == 0) || (j1 == L1  &&  j2 == L2)));
+                BOOST_ASSERT(!((j1 <= 0  &&  j2 <= 0) || (j1 >= L1  &&  j2 >= L2)));
                 diff_type vf = (kd>delta) ? (P + delta - kd) : P;
                 diff_type vr = (kd<0) ? (P-1 + kd) : P-1;
                 Dbest = 2*(vf+vr)+delta;
@@ -405,7 +409,9 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             diff_type j2 = std::min(Vr[kd-1], Vr[kd+1]-1);
             diff_type j1 = j2-kd;
 
-            if (j2 <= Vf[kd]) {
+            if (j2 <= Vf[kd]  &&  !(kd == 0   &&   (j2 == 0  ||  j2 == L2)) ) {
+                BOOST_ASSERT(!((j1 == 0  &&  j2 == 0) || (j1 == L1  &&  j2 == L2)));
+                BOOST_ASSERT(!((j1 <= 0  &&  j2 <= 0) || (j1 >= L1  &&  j2 >= L2)));
                 diff_type vf = (kd>delta) ? (P + delta - kd) : P;
                 diff_type vr = (kd<0) ? (P + kd) : P;
                 Dbest = 2*(vf+vr)+delta;
@@ -422,6 +428,8 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             j1 = j2-ku;
 
             if (j2 <= Vf[ku]) {
+                BOOST_ASSERT(!((j1 == 0  &&  j2 == 0) || (j1 == L1  &&  j2 == L2)));
+                BOOST_ASSERT(!((j1 <= 0  &&  j2 <= 0) || (j1 >= L1  &&  j2 >= L2)));
                 diff_type vf = (ku>delta) ? (P + delta - ku) : P;
                 diff_type vr = (ku<0) ? (P + ku) : P;
                 Dbest = 2*(vf+vr)+delta;
