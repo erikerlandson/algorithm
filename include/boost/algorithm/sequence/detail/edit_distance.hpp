@@ -41,8 +41,8 @@ using boost::mpl::and_;
 using std::iterator_traits;
 using std::random_access_iterator_tag;
 
-template <typename ForwardRange1, typename ForwardRange2, typename Output, typename Cost, typename Equal, typename AllowSub, typename MaxCost>
-struct edit_cost_struct<ForwardRange1, ForwardRange2, Output, Cost, Equal, AllowSub, MaxCost,
+template <typename ForwardRange1, typename ForwardRange2, typename Output, typename Cost, typename Equal, typename AllowSub, typename Limit>
+struct edit_cost_struct<ForwardRange1, ForwardRange2, Output, Cost, Equal, AllowSub, Limit,
                         typename enable_if<and_<is_same<Output, none>,
                                                 not_<and_<range_category<ForwardRange1, ForwardRange2, random_access_iterator_tag>,
                                                           is_same<Cost, unit_cost>,
@@ -54,6 +54,7 @@ typedef path_head<itr1_t, itr2_t, cost_t> head_t;
 typedef typename head_t::pos1_type pos1_t;
 typedef typename head_t::pos2_type pos2_t;
 
+#if 0
 cost_t max_cost_fallback(max_cost_checker<MaxCost, cost_t, head_t>& max_cost_check, bool max_cost_exception, const itr1_t end1, const itr2_t end2, const Cost& cost, const Equal& equal, sub_checker<AllowSub, Cost, cost_t, int> const& allow_sub) const {
     if (max_cost_exception) throw max_edit_cost_exception();
 
@@ -85,10 +86,11 @@ cost_t max_cost_fallback(max_cost_checker<MaxCost, cost_t, head_t>& max_cost_che
     }
     return C;
 }
+#endif
 
 // Default is generic edit distance algorithm based on a Dijkstra Single Source Shortest Path approach
 typename cost_type<Cost, typename boost::range_value<ForwardRange1>::type>::type
-operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, none&, const Cost& cost, const Equal& equal, const AllowSub& allowsub, const MaxCost& max_cost, const bool max_cost_exception) const {
+operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, none&, const Cost& cost, const Equal& equal, const AllowSub& allowsub, const Limit& limit) const {
 
     head_t* const hnull = static_cast<head_t*>(NULL);
 
@@ -105,8 +107,6 @@ operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, none&, const Co
 
     sub_checker<AllowSub, Cost, cost_t, int> allow_sub(allowsub);
 
-    max_cost_checker<MaxCost, cost_t, head_t> max_cost_check(max_cost, beg1, beg2);
-
     // keep track of nodes in the edit graph that have been visited
     typedef boost::unordered_set<head_t*, visited_hash<pos1_t,pos2_t>, visited_equal> visited_t;
     visited_t visited(31, visited_hash<pos1_t,pos2_t>(beg1,beg2));
@@ -119,10 +119,12 @@ operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, none&, const Co
         head_t* h = heap.top();
         heap.pop();
 
+#if 0
         if (max_cost_check(h->cost)) {
             return max_cost_fallback(max_cost_check, max_cost_exception, end1, end2, cost, equal, allow_sub);
         }
         max_cost_check.update(h);
+#endif
 
         if (h->pos1 == end1) {
             // if we are at end of both sequences, then we have our final cost: 
@@ -169,8 +171,8 @@ operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, none&, const Co
 }; // edit_cost_struct
 
 
-template <typename Range1, typename Range2, typename Output, typename Equal, typename MaxCost>
-struct edit_cost_struct<Range1, Range2, Output, unit_cost, Equal, boost::false_type, MaxCost,
+template <typename Range1, typename Range2, typename Output, typename Equal, typename Limit>
+struct edit_cost_struct<Range1, Range2, Output, unit_cost, Equal, boost::false_type, Limit,
                         typename enable_if<and_<is_same<Output, none>,
                                                 range_category<Range1, Range2, random_access_iterator_tag> > >::type> {
 
@@ -180,7 +182,6 @@ typedef typename range_iterator<Range2 const>::type itr2_t;
 typedef std::vector<int>::difference_type diff_type;
 
 typedef typename std::vector<diff_type>::iterator itrv_t;
-typedef max_cost_checker_myers<MaxCost, diff_type, diff_type> max_cost_type;
 
 std::string dump(const itr1_t& S1, const diff_type& len1) const {
     std::string r;
@@ -220,75 +221,6 @@ inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type&
 }
 
 
-diff_type max_cost_fallback(max_cost_type& max_cost_check, const bool max_cost_exception, const Equal& equal,
-                            const itr1_t& S1, const diff_type& L1, const itr2_t& S2, const diff_type& L2,
-                            const itrv_t& Vf, const itrv_t& Vr, const diff_type& delta, const diff_type& D) const {
-    if (max_cost_exception) throw max_edit_cost_exception();
-
-    for (diff_type k = -D;  k <= D;  k += 2) {
-        max_cost_check.update(k, Vf, Vr, delta, L1, L2, D);
-    }
-
-    diff_type r1b=0, r2b=0, r1e=0, r2e=0;
-
-    diff_type C = 0;
-    diff_type k = 0;
-    remainder::kind kind;
-    max_cost_check.get(k, kind);
-    switch (kind) {
-    case remainder::forward: {
-            r1b = Vf[k];
-            r2b = r1b-k;
-            r1e = L1;
-            r2e = L2;
-            C = D;
-        }; break;
-
-        case remainder::reverse: {
-            r1b = 0;
-            r2b = 0;
-            r1e = Vr[k];
-            r2e = r1e-k;
-            C = D;
-        }; break;
-
-        case remainder::bidirectional: {
-            r1b = Vf[k];
-            r2b = r1b-k;
-            r1e = Vr[k];
-            r2e = r1e-k;
-            C = 2*D;
-        }; break;
-
-        default: BOOST_ASSERT(false);
-    }
-
-    // this is the part we bailed on due to hitting the maximum
-    diff_type j1 = r1b;
-    diff_type j2 = r2b;
-    while (true) {
-        if (j1 >= r1e) {
-            if (j2 >= r2e) {
-                break;
-            } else {
-                C += 1;
-                ++j2;
-            }
-        } else {
-            if (j2 >= r2e) {
-                C += 1;
-                ++j1;
-            } else {
-                if (!equal(S1[j1], S2[j2])) C += 2;
-                ++j1;
-                ++j2;
-            }
-        }
-    }
-
-    return C;
-}
-
 // If we are using unit cost for ins/del, with no substitution,
 // and if our sequences support random-access,
 // *then* we can invoke the efficient and elegant Myers algorithm:
@@ -296,7 +228,7 @@ diff_type max_cost_fallback(max_cost_type& max_cost_check, const bool max_cost_e
 //     by Eugene W. Myers
 //     Dept of Computer Science, University of Arizona
 typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
-operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, const Equal& equal, const boost::false_type&, const MaxCost& max_cost, const bool max_cost_exception) const {
+operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, const Equal& equal, const boost::false_type&, const Limit& limit) const {
     itr1_t seq1 = boost::begin(seq1_);
     itr2_t seq2 = boost::begin(seq2_);
     diff_type len1 = distance(seq1_);
@@ -348,8 +280,6 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         Vf[k] = -1;
         Vr[k] = 1+L2;
     }
-
-    max_cost_type max_cost_check(max_cost);
 
     // initialize this with the maximum possible distance:
     diff_type Dbest = L1+L2;
@@ -442,14 +372,6 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
             ++ku;
         }
 
-#if 0
-        if (max_cost_check((delta_even) ? (2*D+2) : (2*D+1))) {
-            return max_cost_fallback(max_cost_check, max_cost_exception, equal,
-                                     S1, L1, S2, L2,
-                                     Vf, Vr, delta, D);
-        }
-#endif
-
         // expand the working vector as needed
         if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, 1+L2);
         ++P;
@@ -463,12 +385,12 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
 }; // edit_cost_struct
 
 
-template <typename Range1, typename Range2, typename Output, typename Cost, typename Equal, typename AllowSub, typename MaxCost>
+template <typename Range1, typename Range2, typename Output, typename Cost, typename Equal, typename AllowSub, typename Limit>
 inline
 typename cost_type<Cost, typename boost::range_value<Range1>::type>::type
-edit_cost_impl(Range1 const& seq1, Range2 const& seq2, Output& output, const Cost& cost, const Equal& equal, const AllowSub& allow_sub, const MaxCost& max_cost, const bool max_cost_exception) {
+edit_cost_impl(Range1 const& seq1, Range2 const& seq2, Output& output, const Cost& cost, const Equal& equal, const AllowSub& allow_sub, const Limit& limit) {
     // specialize the most appropriate implementation for the given parameters
-    return edit_cost_struct<Range1, Range2, Output, Cost, Equal, AllowSub, MaxCost>()(seq1, seq2, output, cost, equal, allow_sub, max_cost, max_cost_exception);
+    return edit_cost_struct<Range1, Range2, Output, Cost, Equal, AllowSub, Limit>()(seq1, seq2, output, cost, equal, allow_sub, limit);
 }
 
 

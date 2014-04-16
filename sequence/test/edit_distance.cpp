@@ -280,6 +280,7 @@ BOOST_AUTO_TEST_CASE(allow_sub_1) {
     BOOST_CHECK_EQUAL(edit_distance("raqc", "rxqz", _substitution=boost::false_type()), (unsigned)4);
 }
 
+#if 0
 BOOST_AUTO_TEST_CASE(max_cost_error_1) {
     std::string seq1 = "xx21fxxxxxxxxxxxxxxxxxxxgxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2b82cfxxxxxxxxxxxxxxxxxxxx";
     std::string seq2 = "x32gc3eaxxxxxxxxxxxxxxxxxedfxxxxxxxxxxxxxxxxxg63bxxxxxxxxxxxxxxxxxxg2xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
@@ -380,6 +381,8 @@ BOOST_AUTO_TEST_CASE(max_cost_2) {
     double tt = time(0) - t0;
     BOOST_TEST_MESSAGE("time= " << tt << " sec   n= " << n << "   mean-time= " << tt/double(n) << "\n");
 }
+
+#endif
 
 BOOST_AUTO_TEST_CASE(long_sequences) {
     BOOST_CHECK_EQUAL(edit_distance("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",

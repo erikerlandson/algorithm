@@ -28,12 +28,12 @@ using boost::mpl::not_;
 using std::random_access_iterator_tag;
 using boost::make_tuple;
 
-template <typename ForwardRange1, typename ForwardRange2, typename Output, typename Cost, typename Equal, typename AllowSub, typename MaxCost, typename Enabled = void>
+template <typename ForwardRange1, typename ForwardRange2, typename Output, typename Cost, typename Equal, typename AllowSub, typename Limit, typename Enabled = void>
 struct edit_cost_struct {
 };
 
-template <typename ForwardRange1, typename ForwardRange2, typename Output, typename Cost, typename Equal, typename AllowSub, typename MaxCost>
-struct edit_cost_struct<ForwardRange1, ForwardRange2, Output, Cost, Equal, AllowSub, MaxCost, 
+template <typename ForwardRange1, typename ForwardRange2, typename Output, typename Cost, typename Equal, typename AllowSub, typename Limit>
+struct edit_cost_struct<ForwardRange1, ForwardRange2, Output, Cost, Equal, AllowSub, Limit, 
                         typename enable_if<and_<not_<is_same<Output, none> >,
                                                 not_<and_<range_category<ForwardRange1, ForwardRange2, random_access_iterator_tag>,
                                                           is_same<Cost, unit_cost>,
@@ -109,6 +109,7 @@ void traceback(head_t* path_head, const Equal& equal, sub_checker<AllowSub, Cost
     }
 }
 
+#if 0
 cost_t max_cost_fallback(max_cost_checker<MaxCost, cost_t, head_t>& max_cost_check, bool max_cost_exception, const itr1_t end1, const itr2_t end2, Output& output, const Cost& cost, const Equal& equal, sub_checker<AllowSub, Cost, cost_t, Output> const& allow_sub) {
     if (max_cost_exception) throw max_edit_cost_exception();
 
@@ -168,8 +169,9 @@ cost_t max_cost_fallback(max_cost_checker<MaxCost, cost_t, head_t>& max_cost_che
 
     return C;
 }
+#endif
 
-cost_t operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, Output& output, const Cost& cost, const Equal& equal, const AllowSub& allowsub, const MaxCost& max_cost, const bool max_cost_exception) {
+cost_t operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, Output& output, const Cost& cost, const Equal& equal, const AllowSub& allowsub, const Limit& limit) {
     head_t* const hnull = static_cast<head_t*>(NULL);
 
     const itr1_t end1 = boost::end(seq1);
@@ -185,7 +187,7 @@ cost_t operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, Output& 
 
     sub_checker<AllowSub, Cost, cost_t, Output> allow_sub(allowsub);
 
-    max_cost_checker<MaxCost, cost_t, head_t> max_cost_check(max_cost, beg1, beg2);
+//    max_cost_checker<MaxCost, cost_t, head_t> max_cost_check(max_cost, beg1, beg2);
 
     head_t* path_head = hnull;
 
@@ -201,10 +203,12 @@ cost_t operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, Output& 
         head_t* h = heap.top();
         heap.pop();
 
+#if 0
         if (max_cost_check(h->cost)) {
             return max_cost_fallback(max_cost_check, max_cost_exception, end1, end2, output, cost, equal, allow_sub);
         }
         max_cost_check.update(h);
+#endif
 
         if (h->pos1 == end1) {
             if (h->pos2 == end2) {
@@ -256,8 +260,8 @@ cost_t operator()(ForwardRange1 const& seq1, ForwardRange2 const& seq2, Output& 
 }; // edit_cost_struct
 
 
-template <typename Range1, typename Range2, typename Output, typename Equal, typename MaxCost>
-struct edit_cost_struct<Range1, Range2, Output, unit_cost, Equal, boost::false_type, MaxCost,
+template <typename Range1, typename Range2, typename Output, typename Equal, typename Limit>
+struct edit_cost_struct<Range1, Range2, Output, unit_cost, Equal, boost::false_type, Limit,
                         typename enable_if<and_<not_<is_same<Output, none> >,
                                                 range_category<Range1, Range2, random_access_iterator_tag> > >::type> {
 
@@ -268,7 +272,7 @@ typedef std::vector<int>::difference_type diff_type;
 
 typedef std::vector<diff_type>::iterator itrv_t;
 
-typedef max_cost_checker_myers<MaxCost, diff_type, diff_type> max_cost_type;
+//typedef max_cost_checker_myers<MaxCost, diff_type, diff_type> max_cost_type;
 
 
 template <typename Vec, typename Itr> 
@@ -295,6 +299,7 @@ std::string dump(const itr1_t& S1, const diff_type& len1) const {
     return r;
 }
 
+#if 0
 diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type>& max_cost_check, const bool max_cost_exception, 
                             const Equal& equal, const MaxCost& max_cost, Output& output,
                             const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2,
@@ -380,9 +385,10 @@ diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type
 
     return C;
 }
+#endif
 
 typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
-path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2, const Equal& equal, const MaxCost& max_cost, const bool max_cost_exception, Output& output, std::vector<diff_type>& V_data) const {
+path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2, const Equal& equal, const Limit& limit, Output& output, std::vector<diff_type>& V_data) const {
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
     for (;  eqb < std::min(len1, len2);  ++eqb) if (!equal(seq1[eqb],seq2[eqb])) break;
@@ -423,7 +429,7 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
     // midpoint run of equal elements ("snake")
     diff_type r1b, r2b, r1e, r2e;
 
-    max_cost_type max_cost_check(max_cost);
+//    max_cost_type max_cost_check(max_cost);
 
     diff_type D = 0;
     Vf[1] = 0;
@@ -482,6 +488,7 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             break;
         }
 
+#if 0
         if (max_cost_check((delta_even) ? (2*D+2) : (2*D+1))) {
             return max_cost_fallback(max_cost_check, max_cost_exception, 
                                      equal, max_cost, output,
@@ -490,6 +497,7 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
                                      S1, L1, S2, L2,
                                      V_data, Vf, Vr, delta, D);
         }
+#endif
 
         // expand the working vectors as needed
         if (D >= R) expand(V_data, Vf, Vr, R, D, delta);
@@ -499,11 +507,11 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
     // output for equal prefix:
     for (diff_type j = 0;  j < eqb;  ++j) output.equality(seq1[j], seq2[j]);
     // output for path up to midpoint snake:
-    path(S1, r1b, S2, r2b, equal, max_cost, max_cost_exception, output, V_data);
+    path(S1, r1b, S2, r2b, equal, limit, output, V_data);
     // output for midpoint snake:
     for (diff_type j1=r1b,j2=r2b; j1 < r1e;  ++j1, ++j2) output.equality(S1[j1], S2[j2]);
     // output for path from midpoint to end:
-    path(S1+r1e, L1-r1e, S2+r2e, L2-r2e, equal, max_cost, max_cost_exception, output, V_data);
+    path(S1+r1e, L1-r1e, S2+r2e, L2-r2e, equal, limit, output, V_data);
     // output for equal suffix:
     for (diff_type j1=len1-eqe, j2=len2-eqe; j1 < len1; ++j1,++j2) output.equality(seq1[j1], seq2[j2]);
 
@@ -512,10 +520,10 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
 
 inline
 typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
-operator()(Range1 const& seq1, Range2 const& seq2, Output& output, const unit_cost&, const Equal& equal, const boost::false_type&, const MaxCost& max_cost, const bool max_cost_exception) const {
+operator()(Range1 const& seq1, Range2 const& seq2, Output& output, const unit_cost&, const Equal& equal, const boost::false_type&, const Limit& limit) const {
     typedef std::vector<int>::difference_type diff_type;
     std::vector<diff_type> V_data;
-    return path(boost::begin(seq1), distance(seq1), boost::begin(seq2), distance(seq2), equal, max_cost, max_cost_exception, output, V_data);
+    return path(boost::begin(seq1), distance(seq1), boost::begin(seq2), distance(seq2), equal, limit, output, V_data);
 }
 
 }; // edit_cost_struct

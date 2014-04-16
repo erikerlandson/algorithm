@@ -86,8 +86,7 @@ namespace parameter {
     BOOST_PARAMETER_NAME(equal)
     BOOST_PARAMETER_NAME(script)
     BOOST_PARAMETER_NAME(substitution)
-    BOOST_PARAMETER_NAME(max_cost)
-    BOOST_PARAMETER_NAME(max_cost_exception)
+    BOOST_PARAMETER_NAME(limit)
 }
 
 
@@ -119,6 +118,12 @@ template <typename T> inline T& nonconst_default() {
 template <typename Range1, typename Range2, typename Tag> struct range_category : public
     and_<is_same<typename std::iterator_traits<typename boost::range_iterator<Range1>::type>::iterator_category, Tag>,
          is_same<typename std::iterator_traits<typename boost::range_iterator<Range2>::type>::iterator_category, Tag> > {};
+
+template <typename Limiter, typename Node> struct limit_checker {};
+
+template <typename Node>
+struct limit_checker<none, Node> {
+};
 
 template <typename MaxCost, typename CostT, typename Node, typename Enable = void> struct max_cost_checker {};
 
@@ -164,6 +169,15 @@ struct max_cost_checker<MaxCost, CostT, Node, typename enable_if<is_arithmetic<M
         node = mcnode;
     }
 };
+
+
+template <typename Limiter, typename Node> struct limit_checker_myers {};
+
+template <typename Node>
+struct limit_checker_myers<none, Node> {
+};
+
+
 
 struct remainder {
     enum kind { none, forward, reverse, bidirectional };
