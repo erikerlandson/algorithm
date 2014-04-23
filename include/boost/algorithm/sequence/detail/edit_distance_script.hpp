@@ -274,24 +274,32 @@ typedef std::vector<diff_type>::iterator itrv_t;
 
 //typedef max_cost_checker_myers<MaxCost, diff_type, diff_type> max_cost_type;
 
-
 template <typename Vec, typename Itr> 
-inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& D, const diff_type& delta) const {
+inline void expand(Vec& V_data, Itr& Vf, Itr& Vr, diff_type& R, const diff_type& P, const diff_type& delta, const diff_type& L) const {
     diff_type Rp = R + (R>>1);
-    V_data.resize(2 + 4*Rp);
-    Vf = V_data.begin() + R;
-    Vr = V_data.begin() + (3*R+1) - delta;
 
-    Itr Vp = V_data.begin() + (3*Rp+1) - delta;
-    for (diff_type j=D+delta;  j >= -D+delta;  --j) Vp[j] = Vr[j];
-    Vr = Vp;
+    if (size_t(2*(1 + delta + 2*Rp)) > V_data.size()) {
+        V_data.resize(2*(1 + delta + 2*Rp));
+        Vf = V_data.begin() + R;
+        Vr = V_data.begin() + (1 + delta + 2*R) + R;
 
-    Vp = V_data.begin() + Rp;
-    for (diff_type j=D;  j >= -D;  --j) Vp[j] = Vf[j];
-    Vf = Vp;
+        Itr Vp = V_data.begin() + (1 + delta + 2*Rp) + Rp;
+        for (diff_type j=P+delta;  j >= -P;  --j) Vp[j] = Vr[j];
+        Vr = Vp;
+
+        Vp = V_data.begin() + Rp;
+        for (diff_type j=P+delta;  j >= -P;  --j) Vp[j] = Vf[j];
+        Vf = Vp;
+    }
 
     R = Rp;
+
+    for (diff_type j=1;  j<=(R-P);  ++j) {
+        Vf[-P-j] = Vf[P+delta+j] = -1;
+        Vr[-P-j] = Vr[P+delta+j] = L;
+    }
 }
+
 
 std::string dump(const itr1_t& S1, const diff_type& len1) const {
     std::string r;
@@ -389,103 +397,183 @@ diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type
 
 typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
 path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2, const Equal& equal, const Limit& limit, Output& output, std::vector<diff_type>& V_data) const {
+    std::cout << std::endl << std::endl << "=======================================" << std::endl;
+    std::cout << "seq1= " << dump(seq1, len1) << std::endl;
+    std::cout << "seq2= " << dump(seq2, len2) << std::endl;
+
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
     for (;  eqb < std::min(len1, len2);  ++eqb) if (!equal(seq1[eqb],seq2[eqb])) break;
     diff_type eqe = len1-1;
-    for (diff_type j2 = len2-1;  eqe > eqb && j2 > eqb;  --eqe,--j2) if (!equal(seq1[eqe],seq2[j2])) break;
+    for (diff_type j2 = len2-1;  eqe >= eqb && j2 >= eqb;  --eqe,--j2) if (!equal(seq1[eqe],seq2[j2])) break;
     eqe = len1-1-eqe;
 
     // sub-strings with equal suffix and/or prefix stripped
-    const itr1_t S1 = seq1 + eqb;
-    const diff_type L1 = len1-(eqb+eqe);
-    const itr2_t S2 = seq2 + eqb;
-    const diff_type L2 = len2-(eqb+eqe);
+    diff_type l1 = len1-(eqb+eqe);
+    diff_type l2 = len2-(eqb+eqe);
+
+    std::cout << std::endl;
+    std::cout << make_tuple(eqb, eqe, l1, l2) << std::endl;
 
     // basis case: either or both strings are empty:
-    if (L1 <= 0) {
+    if (l1 <= 0) {
+        const itr2_t S2 = seq2 + eqb;
         for (diff_type j = 0;  j < eqb;  ++j) output.equality(seq1[j], seq2[j]);
-        for (diff_type j = 0;  j < L2;  ++j) output.insertion(S2[j], 1);
+        for (diff_type j = 0;  j < l2;  ++j) output.insertion(S2[j], 1);
         for (diff_type j1=len1-eqe, j2=len2-eqe; j1 < len1; ++j1,++j2) output.equality(seq1[j1], seq2[j2]);
-        return L2;
+        return l2;
     }
-    if (L2 <= 0) {
+    if (l2 <= 0) {
+        const itr1_t S1 = seq1 + eqb;
         for (diff_type j = 0;  j < eqb;  ++j) output.equality(seq1[j], seq2[j]);
-        for (diff_type j = 0;  j < L1;  ++j) output.deletion(S1[j], 1);
+        for (diff_type j = 0;  j < l1;  ++j) output.deletion(S1[j], 1);
         for (diff_type j1=len1-eqe, j2=len2-eqe; j1 < len1; ++j1,++j2) output.equality(seq1[j1], seq2[j2]);
-        return L1;
+        return l1;
     }
 
-    const diff_type delta = L1-L2;
-    const bool delta_even = delta%2 == 0;
+
+    // TODO:  this won't work when seq1 and seq2 have differing iterator types
+    // I will need to break this out and add testing to exercise that case
+    // this algorithm wants L2 >= L1
+    diff_type L1, L2;
+    itr1_t S1, S2;
+    bool transposed = false;
+    if (l2 >= l1) {
+        S1 = seq1 + eqb;
+        L1 = l1;
+        S2 = seq2 + eqb;
+        L2 = l2;
+    } else {
+        transposed = true;
+        S1 = seq2 + eqb;
+        L1 = l2;
+        S2 = seq1 + eqb;
+        L2 = l1;
+    }
+
+    std::cout << std::endl;
+    std::cout << "S1= " << dump(S1, L1) << std::endl;
+    std::cout << "S2= " << dump(S2, L2) << std::endl;
+
+    const diff_type delta = L2-L1;
 
     // set up 'V' vectors for forward and reverse edit path diagonals
     // note, these are maintained to allow negative indexes
-    if (V_data.size() <= 0) V_data.resize(2*(1+2*10));
-    diff_type R = V_data.size()/4;
-    std::vector<diff_type>::iterator Vf = V_data.begin()+R;
-    std::vector<diff_type>::iterator Vr = V_data.begin()+(3*R+1)-delta;
+    if (V_data.size() < size_t(2*(1 + delta + 2*5))) V_data.resize(2*(1 + delta + 2*5));
+    diff_type R = ((V_data.size()/2) - (1 + delta))/2;
+    itrv_t Vf = V_data.begin() + R;
+    itrv_t Vr = V_data.begin() + (1 + delta + 2*R) + R;
+    R = 5;
+    for (diff_type k = -R;  k <= delta+R;  ++k) {
+        Vf[k] = -1;
+        Vr[k] = 1+L2;
+    }
 
     // midpoint run of equal elements ("snake")
-    diff_type r1b, r2b, r1e, r2e;
+    diff_type r2b=-1, r2e=-1;
+    diff_type rk = 0;
 
 //    max_cost_type max_cost_check(max_cost);
 
-    diff_type D = 0;
-    Vf[1] = 0;
-    Vr[-1+delta] = L1;
-    bool found = false;
+    // initialize this > maximum possible distance:
+    diff_type Dbest = 1+L1+L2;
+
+    diff_type P = 0;
     while (true) {
-        // advance the forward-path diagonals:
-        for (diff_type k = -D;  k <= D;  k += 2) {
-            diff_type j1 = (k == -D  ||  (k != D  &&  Vf[k-1] < Vf[k+1]))  ?  Vf[k+1]  :  1+Vf[k-1];
-            diff_type j2 = j1-k;
-            r1b = j1;
-            r2b = j2;
+        // the minimum possible distance for the current P value
+        diff_type Dmin = 2*(P-1) + delta;
+
+        // if the minimum possible distance is >= our best-known distance, we can halt
+        if (Dmin >= Dbest) break;
+
+        diff_type bound = std::min(delta, ((Dbest-1-delta)/2)-(2*P)+1);
+        // on the middle plateau:
+        if (bound >= 0) bound = delta;
+
+        // advance forward diagonals
+        for (diff_type ku = -P, kd = P+delta;  ku <= bound;  ++ku) {
+            diff_type j2 = std::max(1+Vf[ku-1], Vf[ku+1]);
+            diff_type t2 = j2;
+            diff_type j1 = j2-ku;
+
             while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+            Vf[ku] = j2;
 
-            if (!delta_even  &&  (k-delta) >= -(D-1)  &&  (k-delta) <= (D-1)) {
-                diff_type r1 = Vr[k];
-                diff_type r2 = Vr[k]-k;
-                if ((r1b-r2b) == (r1-r2)  &&  r1b >= r1) {
-                    r1e = j1;
-                    r2e = j2;
-                    found = true;
-                    break;
-                }
+            if (t2 >= Vr[ku]  &&  !((ku == 0  &&  t2 == 0)  ||  (ku == delta  &&  t2 == L2))) {
+                diff_type vf = (ku>delta) ? (P + delta - ku) : P;
+                diff_type vr = (ku<0) ? (P-1 + ku) : P-1;
+                Dbest = 2*(vf+vr)+delta;
+                rk = ku;
+                r2b = t2;
+                r2e = j2;
+                break;
             }
 
-            Vf[k] = j1;
-        }
-        if (found) {
-            D = 2*D - 1;
-            break;
+            if (kd <= delta) continue;
+
+            j2 = std::max(1+Vf[kd-1], Vf[kd+1]);
+            t2 = j2;
+            j1 = j2-kd;
+
+            while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+            Vf[kd] = j2;
+
+            if (t2 >= Vr[kd]) {
+                diff_type vf = (kd>delta) ? (P + delta - kd) : P;
+                diff_type vr = (kd<0) ? (P-1 + kd) : P-1;
+                Dbest = 2*(vf+vr)+delta;
+                rk = kd;
+                r2b = t2;
+                r2e = j2;
+                break;
+            }
+
+            --kd;
         }
 
-        // advance the reverse-path diagonals:
-        for (diff_type k = -D+delta;  k <= D+delta;  k += 2) {
-            diff_type j1 = (k == D+delta  ||  (k != -D+delta  &&  Vr[k-1] < Vr[k+1]))  ?  Vr[k-1]  :  Vr[k+1]-1;
-            diff_type j2 = j1-k;
-            r1e = j1;
-            r2e = j2;
+        bound = std::max(diff_type(0), ((1+delta-Dbest)/2)+delta+(2*P));
+        // on the middle plateau:
+        if (bound <= delta) bound = 0;
+
+        // advance reverse-path diagonals:
+        for (diff_type kd=P+delta, ku=-P;  kd >= bound;  --kd) {
+            diff_type j2 = std::min(Vr[kd-1], Vr[kd+1]-1);
+            diff_type t2 = j2;
+            diff_type j1 = j2-kd;
+
             while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+            Vr[kd] = j2;
 
-            if (delta_even  &&  k >= -D  &&  k <= D) {
-                diff_type f1 = Vf[k];   
-                diff_type f2 = Vf[k]-k;
-                if ((r1e-r2e) == (f1-f2)  &&  f1 >= r1e) {
-                    r1b = j1;
-                    r2b = j2;
-                    found = true;
-                    break;
-                }
+            if (t2 <= Vf[kd]  &&  !((kd == 0  &&  t2 == 0)  ||  (kd == delta  &&  t2 == L2))) {
+                diff_type vf = (kd>delta) ? (P + delta - kd) : P;
+                diff_type vr = (kd<0) ? (P + kd) : P;
+                Dbest = 2*(vf+vr)+delta;
+                rk = kd;
+                r2b = j2;
+                r2e = t2;
+                break;
             }
 
-            Vr[k] = j1;
-        }
-        if (found) {
-            D = 2*D;
-            break;
+            if (ku >= 0) continue;
+
+            j2 = std::min(Vr[ku-1], Vr[ku+1]-1);
+            t2 = j2;
+            j1 = j2-ku;
+
+            while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+            Vr[ku] = j2;
+
+            if (t2 <= Vf[ku]) {
+                diff_type vf = (ku>delta) ? (P + delta - ku) : P;
+                diff_type vr = (ku<0) ? (P + ku) : P;
+                Dbest = 2*(vf+vr)+delta;
+                rk = ku;
+                r2b = j2;
+                r2e = t2;
+                break;
+            }
+
+            ++ku;
         }
 
 #if 0
@@ -499,23 +587,48 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
         }
 #endif
 
-        // expand the working vectors as needed
-        if (D >= R) expand(V_data, Vf, Vr, R, D, delta);
-        ++D;
+        // expand the working vector as needed
+        if (1+P >= R) expand(V_data, Vf, Vr, R, P, delta, 1+L2);
+        ++P;
     }
+
+#if 0
+    if (r2b < 0) {
+        // in certain cases where sequences have no elements in common (i.e. edit distance = L1+L2)
+        // the logic for avoiding degenerate splits can prevent the algorithm from finding a complete
+        // path.  However, in this case all paths cost the same, so its easy to provide a split:
+        r2b = L2;
+        r2e = L2;
+        rk = L2;
+    }
+#endif
+
+    diff_type r1b = r2b - rk;
+    diff_type r1e = r2e - rk;
+
+    std::cout << "Dbest= " << Dbest << std::endl;
+    std::cout << make_tuple(r1b, r2b, r1e, r2e, rk) << std::endl;
 
     // output for equal prefix:
     for (diff_type j = 0;  j < eqb;  ++j) output.equality(seq1[j], seq2[j]);
-    // output for path up to midpoint snake:
-    path(S1, r1b, S2, r2b, equal, limit, output, V_data);
-    // output for midpoint snake:
-    for (diff_type j1=r1b,j2=r2b; j1 < r1e;  ++j1, ++j2) output.equality(S1[j1], S2[j2]);
-    // output for path from midpoint to end:
-    path(S1+r1e, L1-r1e, S2+r2e, L2-r2e, equal, limit, output, V_data);
+
+    if (!transposed) {
+        // output for path up to midpoint snake:
+        path(S1, r1b, S2, r2b, equal, limit, output, V_data);
+        // output for midpoint snake:
+        for (diff_type j1=r1b,j2=r2b; j1 < r1e;  ++j1, ++j2) output.equality(S1[j1], S2[j2]);
+        // output for path from midpoint to end:
+        path(S1+r1e, L1-r1e, S2+r2e, L2-r2e, equal, limit, output, V_data);
+    } else {
+        path(S2, r2b, S1, r1b, equal, limit, output, V_data);
+        for (diff_type j1=r1b,j2=r2b; j1 < r1e;  ++j1, ++j2) output.equality(S2[j2], S1[j1]);
+        path(S2+r2e, L2-r2e, S1+r1e, L1-r1e, equal, limit, output, V_data);
+    }
+
     // output for equal suffix:
     for (diff_type j1=len1-eqe, j2=len2-eqe; j1 < len1; ++j1,++j2) output.equality(seq1[j1], seq2[j2]);
 
-    return D;
+    return Dbest;
 }
 
 inline

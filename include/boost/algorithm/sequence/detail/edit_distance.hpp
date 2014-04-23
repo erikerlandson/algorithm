@@ -253,6 +253,8 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     if (l1 <= 0) return l2;
     if (l2 <= 0) return l1;
 
+    // TODO:  this won't work when seq1 and seq2 have differing iterator types
+    // I will need to break this out and add testing to exercise that case
     diff_type L1, L2;
     itr1_t S1, S2;
     if (l2 >= l1) {
