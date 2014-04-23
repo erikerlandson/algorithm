@@ -397,9 +397,9 @@ diff_type max_cost_fallback(max_cost_checker_myers<MaxCost, diff_type, diff_type
 
 typename cost_type<unit_cost, typename boost::range_value<Range1>::type>::type
 path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_type& len2, const Equal& equal, const Limit& limit, Output& output, std::vector<diff_type>& V_data) const {
-    std::cout << std::endl << std::endl << "=======================================" << std::endl;
-    std::cout << "seq1= " << dump(seq1, len1) << std::endl;
-    std::cout << "seq2= " << dump(seq2, len2) << std::endl;
+//    std::cout << std::endl << std::endl << "=======================================" << std::endl;
+//    std::cout << "seq1= " << dump(seq1, len1) << std::endl;
+//    std::cout << "seq2= " << dump(seq2, len2) << std::endl;
 
     // identify any equal suffix and/or prefix
     diff_type eqb = 0;
@@ -412,8 +412,8 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
     diff_type l1 = len1-(eqb+eqe);
     diff_type l2 = len2-(eqb+eqe);
 
-    std::cout << std::endl;
-    std::cout << make_tuple(eqb, eqe, l1, l2) << std::endl;
+//    std::cout << std::endl;
+//    std::cout << make_tuple(eqb, eqe, l1, l2) << std::endl;
 
     // basis case: either or both strings are empty:
     if (l1 <= 0) {
@@ -451,9 +451,9 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
         L2 = l1;
     }
 
-    std::cout << std::endl;
-    std::cout << "S1= " << dump(S1, L1) << std::endl;
-    std::cout << "S2= " << dump(S2, L2) << std::endl;
+//    std::cout << std::endl;
+//    std::cout << "S1= " << dump(S1, L1) << std::endl;
+//    std::cout << "S2= " << dump(S2, L2) << std::endl;
 
     const diff_type delta = L2-L1;
 
@@ -592,22 +592,11 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
         ++P;
     }
 
-#if 0
-    if (r2b < 0) {
-        // in certain cases where sequences have no elements in common (i.e. edit distance = L1+L2)
-        // the logic for avoiding degenerate splits can prevent the algorithm from finding a complete
-        // path.  However, in this case all paths cost the same, so its easy to provide a split:
-        r2b = L2;
-        r2e = L2;
-        rk = L2;
-    }
-#endif
-
     diff_type r1b = r2b - rk;
     diff_type r1e = r2e - rk;
 
-    std::cout << "Dbest= " << Dbest << std::endl;
-    std::cout << make_tuple(r1b, r2b, r1e, r2e, rk) << std::endl;
+//    std::cout << "Dbest= " << Dbest << std::endl;
+//    std::cout << make_tuple(r1b, r2b, r1e, r2e, rk) << std::endl;
 
     // output for equal prefix:
     for (diff_type j = 0;  j < eqb;  ++j) output.equality(seq1[j], seq2[j]);
