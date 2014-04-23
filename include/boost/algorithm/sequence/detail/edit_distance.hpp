@@ -284,7 +284,7 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
     }
 
     // initialize this with the maximum possible distance:
-    diff_type Dbest = L1+L2;
+    diff_type Dbest = 1+L1+L2;
 
     diff_type P = 0;
     while (true) {
@@ -294,14 +294,16 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         // if the minimum possible distance is >= our best-known distance, we can halt
         if (Dmin >= Dbest) return Dbest;
 
-        diff_type bound = std::min(delta, ((Dbest-delta-1)/2)-(2*P)+1);
+        diff_type bound = std::min(delta, ((Dbest-1-delta)/2)-(2*P)+1);
+        // on the middle plateau:
+        if (bound >= 0) bound = delta;
 
         // advance forward diagonals
         for (diff_type ku = -P, kd = P+delta;  ku <= bound;  ++ku) {
             diff_type j2 = std::max(1+Vf[ku-1], Vf[ku+1]);
             diff_type j1 = j2-ku;
 
-            if (j2 >= Vr[ku]  && !(ku == 0   &&   (j2 == 0  ||  j2 == L2)) ) {
+            if (j2 >= Vr[ku]  &&  !((ku == 0  &&  j2 == 0)  ||  (ku == delta  &&  j2 == L2))) {
                 BOOST_ASSERT(!((j1 == 0  &&  j2 == 0) || (j1 == L1  &&  j2 == L2)));
                 BOOST_ASSERT(!((j1 <= 0  &&  j2 <= 0) || (j1 >= L1  &&  j2 >= L2)));
                 diff_type vf = (ku>delta) ? (P + delta - ku) : P;
@@ -335,13 +337,15 @@ operator()(Range1 const& seq1_, Range2 const& seq2_, none&, const unit_cost&, co
         }
 
         bound = std::max(diff_type(0), ((1+delta-Dbest)/2)+delta+(2*P));
+        // on the middle plateau:
+        if (bound <= delta) bound = 0;
 
         // advance reverse-path diagonals:
         for (diff_type kd=P+delta, ku=-P;  kd >= bound;  --kd) {
             diff_type j2 = std::min(Vr[kd-1], Vr[kd+1]-1);
             diff_type j1 = j2-kd;
 
-            if (j2 <= Vf[kd]  &&  !(kd == 0   &&   (j2 == 0  ||  j2 == L2)) ) {
+            if (j2 <= Vf[kd]  &&  !((kd == 0  &&  j2 == 0)  ||  (kd == delta  &&  j2 == L2))) {
                 BOOST_ASSERT(!((j1 == 0  &&  j2 == 0) || (j1 == L1  &&  j2 == L2)));
                 BOOST_ASSERT(!((j1 <= 0  &&  j2 <= 0) || (j1 >= L1  &&  j2 >= L2)));
                 diff_type vf = (kd>delta) ? (P + delta - kd) : P;
