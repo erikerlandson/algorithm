@@ -215,7 +215,7 @@ diff_type max_cost_fallback(max_cost_type& max_cost_check, const bool max_cost_e
         max_cost_check.update(k, Vf, Vr, delta, L1, L2, D);
     }
 
-    diff_type r1b, r2b, r1e, r2e;
+    diff_type r1b=0, r2b=0, r1e=0, r2e=0;
 
     diff_type C = 0;
     diff_type k;
