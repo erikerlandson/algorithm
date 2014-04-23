@@ -438,15 +438,15 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             r2b = j2;
             while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
 
-            if (!delta_even  &&  (k-delta) >= -(D-1)  &&  (k-delta) <= (D-1)) {
-                diff_type r1 = Vr[k];
-                diff_type r2 = Vr[k]-k;
-                if ((r1b-r2b) == (r1-r2)  &&  r1b >= r1) {
-                    r1e = j1;
-                    r2e = j2;
-                    found = true;
-                    break;
-                }
+            if (!delta_even  &&  (k-delta) >= -(D-1)  &&  (k-delta) <= (D-1)  &&  r1b >= Vr[k]) {
+//                diff_type r1 = Vr[k];
+//                diff_type r2 = Vr[k]-k;
+//                if ((r1b-r2b) == (r1-r2)  &&  r1b >= r1) {
+                r1e = j1;
+                r2e = j2;
+                found = true;
+                break;
+//                }
             }
 
             Vf[k] = j1;
@@ -464,15 +464,15 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             r2e = j2;
             while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
 
-            if (delta_even  &&  k >= -D  &&  k <= D) {
-                diff_type f1 = Vf[k];   
-                diff_type f2 = Vf[k]-k;
-                if ((r1e-r2e) == (f1-f2)  &&  f1 >= r1e) {
-                    r1b = j1;
-                    r2b = j2;
-                    found = true;
-                    break;
-                }
+            if (delta_even  &&  k >= -D  &&  k <= D  &&   Vf[k] >= r1e) {
+//                diff_type f1 = Vf[k];   
+//                diff_type f2 = Vf[k]-k;
+//                if ((r1e-r2e) == (f1-f2)  &&  f1 >= r1e) {
+                r1b = j1;
+                r2b = j2;
+                found = true;
+                break;
+//                }
             }
 
             Vr[k] = j1;
