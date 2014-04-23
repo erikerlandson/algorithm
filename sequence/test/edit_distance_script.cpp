@@ -534,28 +534,23 @@ BOOST_AUTO_TEST_CASE(failure_1) {
 }
 
 
-
 BOOST_AUTO_TEST_CASE(timing_1) {
     srand(time(0));
     vector<std::string> seqdata;
     const int N = 100;
-    random_localized_deviations(seqdata, N, 100000, 5, 20, 100);
+    random_localized_deviations(seqdata, N, 100000, 5, 1000, 100);
+    script_noop noop;
     int n = 0;
-    double t0 = time(0);
     for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
         for (unsigned int j = 0;  j < i;  ++j) {
-            output_check_script_long_string out(seqdata[i], seqdata[j]);
-            unsigned int d = edit_distance(seqdata[i], seqdata[j], _script = out, _substitution=true_type(), _cost = cost_mixed_ops());
-            out.finalize(d);
-            BOOST_CHECK(out.correct);
-            BOOST_CHECK(d <= 2*seqdata[i].size());
+            unsigned int d = edit_distance(seqdata[i], seqdata[j], _script=noop);
+            BOOST_CHECK(d <= seqdata[i].size() + seqdata[j].size());
             if (++n >= N) break;
         }
     }
-    double tt = time(0) - t0;
-    BOOST_TEST_MESSAGE("time= " << tt << " sec   n= " << n << "   mean-time= " << tt/double(n) << "\n" );
 }
+
 
 BOOST_AUTO_TEST_CASE(crosscheck_1) {
     srand(time(0));

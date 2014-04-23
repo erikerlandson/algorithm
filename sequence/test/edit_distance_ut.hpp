@@ -306,6 +306,12 @@ struct output_check_script_long_string {
     cost_type tcost;
 };
 
+struct script_noop {
+    template <typename V1, typename C> void deletion(const V1&, const C&) {}
+    template <typename V2, typename C> void insertion(const V2&, const C&) {}
+    template <typename V1, typename V2, typename C> void substitution(const V1&, const V2&, const C&) {}
+    template <typename V1, typename V2> void equality(const V1&, const V2&) {}    
+};
 
 struct output_check_script_string {
     typedef char value_type;

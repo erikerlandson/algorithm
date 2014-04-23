@@ -452,7 +452,6 @@ BOOST_AUTO_TEST_CASE(timing_1) {
     const int N = 100;
     random_localized_deviations(seqdata, N, 1000000, 5, 1000, 100);
     int n = 0;
-    double t0 = time(0);
     for (unsigned int i = 0;  i < seqdata.size();  ++i) {
         if (n >= N) break;
         for (unsigned int j = 0;  j < i;  ++j) {
@@ -461,8 +460,6 @@ BOOST_AUTO_TEST_CASE(timing_1) {
             if (++n >= N) break;
         }
     }
-    double tt = time(0) - t0;
-    BOOST_TEST_MESSAGE("time= " << tt << " sec   n= " << n << "   mean-time= " << tt/double(n) << "\n" );
 }
 
 
