@@ -325,19 +325,10 @@ BOOST_AUTO_TEST_CASE(crosscheck_error_0) {
 }
 
 BOOST_AUTO_TEST_CASE(crosscheck_error_1) {
-//    string seq1= "xxxxxxxxxxxxxxx8a4bd5gj9i87ddxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4882ijxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-//    string seq2= "xxxxxxxxxxxxxb231cjgd3hi0c5g887d9exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-
-//    string seq1= "xxxx8a4bd5gj9i87ddxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4882ijxx";
-//    string seq2= "xxb231cjgd3hi0c5g887d9exxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-
     string seq1= "xxxx8a4bd5gj9i87ddxxxxxxxx";
     string seq2= "xxb231cjgd3hi0c5g887d9exxx";
 
-    unsigned d = edit_distance(seq1, seq2);
-    std::cout << "dist= " << d << std::endl;
-
-    CHECK_EDIT_ALIGNMENT(seq1, seq2, d);
+    CHECK_EDIT_ALIGNMENT(seq1, seq2, 28);
 }
 
 BOOST_AUTO_TEST_CASE(allow_sub_1) {
