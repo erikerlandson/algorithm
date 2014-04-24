@@ -524,7 +524,7 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             }
         }
 
-        if (B >= 0  &&  ku > bound) {
+        if (B >= 0  &&  r2b < 0) {
             bound = delta;
             diff_type k = 0;
             diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
@@ -614,7 +614,7 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             }
         }
 
-        if (B <= delta  &&  kd < bound) {
+        if (B <= delta  &&  r2b < 0) {
             bound = 0;
             diff_type k = delta;
             diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
