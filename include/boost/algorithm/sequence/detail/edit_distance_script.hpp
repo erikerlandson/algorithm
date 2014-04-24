@@ -486,12 +486,13 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
         // if the minimum possible distance is >= our best-known distance, we can halt
         if (Dmin >= Dbest) break;
 
-        diff_type bound = std::min(delta, ((Dbest-1-delta)/2)-(2*P)+1);
-        // on the middle plateau:
-        if (bound >= 0) bound = delta;
+        diff_type B = std::min(delta, ((Dbest-1-delta)/2)-(2*P)+1);
+        diff_type bound = (B >= 0) ? -1 : B;
+        
+        diff_type ku, kd;
 
         // advance forward diagonals
-        for (diff_type ku = -P, kd = P+delta;  ku <= bound;  ++ku) {
+        for (ku = -P, kd = P+delta;  ku <= bound;  ++ku, --kd) {
             diff_type j2 = std::max(1+Vf[ku-1], Vf[ku+1]);
             diff_type t2 = j2;
             diff_type j1 = j2-ku;
@@ -499,17 +500,13 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
             Vf[ku] = j2;
 
-            if (t2 >= Vr[ku]  &&  !((ku == 0  &&  t2 == 0)  ||  (ku == delta  &&  t2 == L2))) {
-                diff_type vf = (ku>delta) ? (P + delta - ku) : P;
-                diff_type vr = (ku<0) ? (P-1 + ku) : P-1;
-                Dbest = 2*(vf+vr)+delta;
+            if (t2 >= Vr[ku]) {
+                Dbest = 2*(2*P + ku - 1) + delta;
                 rk = ku;
                 r2b = t2;
                 r2e = j2;
                 break;
             }
-
-            if (kd <= delta) continue;
 
             j2 = std::max(1+Vf[kd-1], Vf[kd+1]);
             t2 = j2;
@@ -519,24 +516,73 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             Vf[kd] = j2;
 
             if (t2 >= Vr[kd]) {
-                diff_type vf = (kd>delta) ? (P + delta - kd) : P;
-                diff_type vr = (kd<0) ? (P-1 + kd) : P-1;
-                Dbest = 2*(vf+vr)+delta;
+                Dbest = 2*(2*P + delta - kd - 1) + delta;
                 rk = kd;
                 r2b = t2;
                 r2e = j2;
                 break;
             }
-
-            --kd;
         }
 
-        bound = std::max(diff_type(0), ((1+delta-Dbest)/2)+delta+(2*P));
-        // on the middle plateau:
-        if (bound <= delta) bound = 0;
+        if (B >= 0  &&  ku > bound) {
+            bound = delta;
+            diff_type k = 0;
+            diff_type j2 = std::max(1+Vf[k-1], Vf[k+1]);
+            diff_type t2 = j2;
+            diff_type j1 = j2-k;
+
+            while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+            Vf[k] = j2;
+
+            if (t2 >= Vr[k]  &&  !((k == 0  &&  t2 == 0)  ||  (k == delta  &&  t2 == L2))) {
+                Dbest = 2*(2*P - 1) + delta;
+                rk = k;
+                r2b = t2;
+                r2e = j2;
+                bound = 0;
+            }
+
+            for (k = 1;  k < bound;  ++k) {
+                j2 = std::max(1+Vf[k-1], Vf[k+1]);
+                t2 = j2;
+                j1 = j2-k;
+
+                while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+                Vf[k] = j2;
+
+                if (t2 >= Vr[k]) {
+                    Dbest = 2*(2*P - 1) + delta;
+                    rk = k;
+                    r2b = t2;
+                    r2e = j2;
+                    bound = 0;
+                    break;
+                }                
+            }
+
+            if (bound > 0) {
+                k = bound;
+                j2 = std::max(1+Vf[k-1], Vf[k+1]);
+                t2 = j2;
+                j1 = j2-k;
+
+                while (j1 < L1  &&  j2 < L2  &&  equal(S1[j1], S2[j2])) { ++j1;  ++j2; }
+                Vf[k] = j2;
+
+                if (t2 >= Vr[k]  &&  !((k == 0  &&  t2 == 0)  ||  (k == delta  &&  t2 == L2))) {
+                    Dbest = 2*(2*P - 1) + delta;
+                    rk = k;
+                    r2b = t2;
+                    r2e = j2;
+                }                
+            }
+        }
+
+        B = std::max(diff_type(0), ((1+delta-Dbest)/2)+delta+(2*P));
+        bound = (B <= delta) ? 1+delta : B;
 
         // advance reverse-path diagonals:
-        for (diff_type kd=P+delta, ku=-P;  kd >= bound;  --kd) {
+        for (kd=P+delta, ku=-P;  kd >= bound;  --kd, ++ku) {
             diff_type j2 = std::min(Vr[kd-1], Vr[kd+1]-1);
             diff_type t2 = j2;
             diff_type j1 = j2-kd;
@@ -544,17 +590,13 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
             Vr[kd] = j2;
 
-            if (t2 <= Vf[kd]  &&  !((kd == 0  &&  t2 == 0)  ||  (kd == delta  &&  t2 == L2))) {
-                diff_type vf = (kd>delta) ? (P + delta - kd) : P;
-                diff_type vr = (kd<0) ? (P + kd) : P;
-                Dbest = 2*(vf+vr)+delta;
+            if (t2 <= Vf[kd]) {
+                Dbest = 2*(2*P + delta - kd) + delta;
                 rk = kd;
                 r2b = j2;
                 r2e = t2;
                 break;
             }
-
-            if (ku >= 0) continue;
 
             j2 = std::min(Vr[ku-1], Vr[ku+1]-1);
             t2 = j2;
@@ -564,16 +606,66 @@ path(const itr1_t& seq1, const diff_type& len1, const itr2_t& seq2, const diff_t
             Vr[ku] = j2;
 
             if (t2 <= Vf[ku]) {
-                diff_type vf = (ku>delta) ? (P + delta - ku) : P;
-                diff_type vr = (ku<0) ? (P + ku) : P;
-                Dbest = 2*(vf+vr)+delta;
+                Dbest = 2*(2*P + ku) + delta;
                 rk = ku;
                 r2b = j2;
                 r2e = t2;
                 break;
             }
+        }
 
-            ++ku;
+        if (B <= delta  &&  kd < bound) {
+            bound = 0;
+            diff_type k = delta;
+            diff_type j2 = std::min(Vr[k-1], Vr[k+1]-1);
+            diff_type t2 = j2;
+            diff_type j1 = j2-k;
+
+            while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+            Vr[k] = j2;
+
+            if (t2 <= Vf[k]  &&  !((k == 0  &&  t2 == 0)  ||  (k == delta  &&  t2 == L2))) {
+                Dbest = 4*P + delta;
+                rk = k;
+                r2b = j2;
+                r2e = t2;
+                bound = delta;
+            }
+
+            for (k = delta-1;  k > bound;  --k) {
+                j2 = std::min(Vr[k-1], Vr[k+1]-1);
+                t2 = j2;
+                j1 = j2-k;
+
+                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+                Vr[k] = j2;
+
+                if (t2 <= Vf[k]) {
+                    Dbest = 4*P + delta;
+                    rk = k;
+                    r2b = j2;
+                    r2e = t2;
+                    bound = delta;
+                    break;
+                }
+            }
+
+            if (bound < delta) {
+                k = bound;
+                j2 = std::min(Vr[k-1], Vr[k+1]-1);
+                t2 = j2;
+                j1 = j2-k;
+
+                while (j1 > 0  &&  j2 > 0  &&  equal(S1[j1-1], S2[j2-1])) { --j1;  --j2; }
+                Vr[k] = j2;
+
+                if (t2 <= Vf[k]  &&  !((k == 0  &&  t2 == 0)  ||  (k == delta  &&  t2 == L2))) {
+                    Dbest = 4*P + delta;
+                    rk = k;
+                    r2b = j2;
+                    r2e = t2;
+                }
+            }
         }
 
 #if 0
